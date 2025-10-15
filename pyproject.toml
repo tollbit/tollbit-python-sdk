@@ -1,0 +1,52 @@
+[project]
+name = "tollbit-python-sdk"
+version = "0.1.0"
+description = "Tollbit SDK for interacting tollbit services, including retrieving content and connecting to the API"
+authors = [
+    {name = "Tollbit",email = "team@tollbit.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10,<4.0"
+dependencies = [
+    "requests (>=2.32.5,<3.0.0)",
+    "python-json-logger (>=4.0.0,<5.0.0)"
+]
+
+[tool.poetry]
+# This tells Poetry that the 'tollbit' directory inside 'src'
+# should be importable as 'tollbit'.
+packages = [{ include = "tollbit", from = "src" }]
+
+[dependency-groups]
+dev = [
+    "black (>=25.9.0,<26.0.0)",
+    "nox (>=2025.10.14,<2026.0.0)",
+    "pytest (>=8.4.2,<9.0.0)",
+    "mypy (>=1.18.2,<2.0.0)",
+    "pkginfo (>=1.12.1.2,<2.0.0.0)",
+    "datamodel-code-generator (>=0.35.0,<0.36.0)",
+    "pyyaml (>=6.0.3,<7.0.0)",
+    "types-requests (>=2.32.4.20250913,<3.0.0.0)",
+]
+
+# ----------------------------
+# Tool-specific configuration
+# ----------------------------
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+disable_error_code = ["attr-defined"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

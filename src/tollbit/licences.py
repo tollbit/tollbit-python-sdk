@@ -1,0 +1,10 @@
+from enum import Enum
+
+
+class LicenceType(str, Enum):
+    ON_DEMAND_LICENSE = "ON_DEMAND_LICENSE"
+    CUSTOM_LICENSE = "CUSTOM_LICENSE"
+
+
+ON_DEMAND_LICENSE = LicenceType.ON_DEMAND_LICENSE
+CUSTOM_LICENSE = LicenceType.CUSTOM_LICENSE

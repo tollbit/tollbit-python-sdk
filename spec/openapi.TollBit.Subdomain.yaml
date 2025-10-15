@@ -1,0 +1,128 @@
+openapi: 3.0.0
+info:
+  title: TollBit Subdomains
+  version: 0.0.0
+tags:
+  - name: Tollbit Subdomain
+paths:
+  /{path}:
+    get:
+      operationId: TollbitSubdomain_getContent
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetContentResponse'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetContentErrorResponse'
+      tags:
+        - Tollbit Subdomain
+      security:
+        - SubdomainAccessToken: []
+components:
+  schemas:
+    ContentRate:
+      type: object
+      required:
+        - price
+        - license
+        - error
+      properties:
+        price:
+          $ref: '#/components/schemas/RatePrice'
+        license:
+          $ref: '#/components/schemas/RateLicenseResponse'
+        error:
+          type: string
+    GetContentErrorResponse:
+      type: object
+    GetContentResponse:
+      type: object
+      required:
+        - content
+        - metadata
+        - rate
+      properties:
+        content:
+          $ref: '#/components/schemas/PageContent'
+        metadata: {}
+        rate:
+          $ref: '#/components/schemas/ContentRate'
+    PageContent:
+      type: object
+      required:
+        - header
+        - body
+        - footer
+      properties:
+        header:
+          type: string
+        body:
+          type: string
+        footer:
+          type: string
+    RateLicensePermission:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    RateLicenseResponse:
+      type: object
+      required:
+        - id
+        - licenseType
+        - licensePath
+        - permissions
+        - validUntil
+      properties:
+        # Manually commented out for now until our API returns it
+        # id:
+        #   type: string
+        licenseType:
+          type: string
+        licensePath:
+          type: string
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RateLicensePermission'
+        validUntil:
+          type: string
+          format: date-time
+    RatePrice:
+      type: object
+      required:
+        - priceMicros
+        - currency
+      properties:
+        priceMicros:
+          type: integer
+          format: int64
+        currency:
+          type: string
+  securitySchemes:
+    SubdomainAccessToken:
+      type: http
+      scheme: Bearer
+      description: |-
+        To access content on a TollBit subdomain, you will need an access token. This token is a JWT that is signed by TollBit and includes information about the subdomain and the permissions granted to the token.
+
+        You can obtain the token by calling the TokensService to create a Content Access Token. Once you have the token, you can include it in the Authorization header of your requests to the subdomain.
+servers:
+  - url: https://tollbit.example.com
+    description: TollBit subdomain of your favorite site
+    variables: {}

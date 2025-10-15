@@ -1,0 +1,101 @@
+openapi: 3.0.0
+info:
+  title: TollBit Services
+  version: 0.0.0
+tags:
+  - name: Auth Tokens
+paths:
+  /tollbit/dev/v2/tokens/content:
+    post:
+      operationId: TokensService_createContentAccessToken
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateSubdomainAccessTokenResponse'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+        - Auth Tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSubdomainAccessTokenRequest'
+      security:
+        - ApiKeyAuth: []
+components:
+  schemas:
+    CreateSubdomainAccessTokenRequest:
+      type: object
+      required:
+        - url
+        - userAgent
+        - maxPriceMicros
+        - currency
+        - licenseType
+        - licenseCuid
+        - format
+      properties:
+        url:
+          type: string
+          format: uri
+        userAgent:
+          type: string
+        maxPriceMicros:
+          type: integer
+          format: int64
+        currency:
+          type: string
+        licenseType:
+          type: string
+        licenseCuid:
+          type: string
+        format:
+          type: string
+          enum:
+            - html
+            - markdown
+    CreateSubdomainAccessTokenResponse:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+    Error:
+      type: object
+    SubdomainAccessToken:
+      type: object
+      required:
+        - type
+        - scheme
+      properties:
+        type:
+          type: string
+          enum:
+            - http
+        scheme:
+          type: string
+          enum:
+            - Bearer
+      description: |-
+        To access content on a TollBit subdomain, you will need an access token. This token is a JWT that is signed by TollBit and includes information about the subdomain and the permissions granted to the token.
+
+        You can obtain the token by calling the TokensService to create a Content Access Token. Once you have the token, you can include it in the Authorization header of your requests to the subdomain.
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: TollbitKey
+servers:
+  - url: https://gateway.tollbit.com
+    variables: {}
