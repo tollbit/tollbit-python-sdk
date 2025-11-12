@@ -14,10 +14,10 @@ SHELL := /bin/bash -eo pipefail
 PACKAGE_NAME := tollbit-python-sdk
 DIST_STEM    := $(subst -,_,$(PACKAGE_NAME))
 VERSION      := $(shell poetry version -s)
-WHEEL := $(shell ls -t dist/$(DIST_STEM)-$(VERSION)-*.whl 2>/dev/null | head -1)
+WHEEL        := $(shell ls -t dist/$(DIST_STEM)-$(VERSION)-*.whl 2>/dev/null | head -1)
+DRYRUN       ?= true
 
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-TOLLBIT_SERVER_DIR ?= $(MAKEFILE_DIR)../tollbit
 
 # --- paths & commands ---
 PY_SRC               := src/tollbit tests
@@ -27,6 +27,7 @@ GENERATED_MODELS_DIR := src/tollbit/_apis/models/_generated
 
 POETRY   := poetry
 PYENV    := pyenv
+GIT      := git
 PYTEST   := $(POETRY) run pytest
 BLACK    := $(POETRY) run black
 MYPY     := $(POETRY) run mypy
@@ -110,10 +111,30 @@ inspect-meta: build ## Show wheel metadata for this version using pkginfo
 	echo "=== 📦 Metadata for $(WHEEL) ===:"; \
 	$(PKGINFO) "$(WHEEL)"
 
+.PHONY: ensure-changelog
+ensure-changelog: ## Ensure CHANGELOG.md has an entry for the current version
+	@./scripts/ensure-changelog.sh $(VERSION)
+
+.PHONY: ensure-tag
+ensure-tag: ## Ensure git tag exists for the current version
+	@./scripts/ensure-git-tag.sh $(VERSION)
+
 .PHONY: publish-test
 publish-test: build ## Publish package to Test PyPI
 	$(POETRY) publish -r testpypi
 
+
+.PHONY: publish-live
+publish-live: ensure-tag ensure-changelog lint type test clean build ## Publish package to Live PyPI
+	@if [ "$(DRYRUN)" = "true" ]; then \
+	  echo "🚧 DRY RUN: Skipping actual publish to PyPI. Set DRYRUN=false to publish."; \
+	  exit 0; \
+	fi; \
+	$(POETRY) publish -r pypi; \
+	$(GIT) tag push origin $(VERSION)
+
+
+# --- defaults ---
 
 .PHONY: all
 all: lint type test ## Run lint + type + tests
