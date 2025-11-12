@@ -131,7 +131,7 @@ publish-live: ensure-tag ensure-changelog lint type test clean build ## Publish 
 	  exit 0; \
 	fi; \
 	$(POETRY) publish; \
-	$(GIT) tag push origin $(VERSION)
+	$(GIT) push origin $(VERSION)
 
 
 # --- defaults ---
