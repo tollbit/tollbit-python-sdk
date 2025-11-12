@@ -130,7 +130,7 @@ publish-live: ensure-tag ensure-changelog lint type test clean build ## Publish 
 	  echo "🚧 DRY RUN: Skipping actual publish to PyPI. Set DRYRUN=false to publish."; \
 	  exit 0; \
 	fi; \
-	$(POETRY) publish -r pypi; \
+	$(POETRY) publish; \
 	$(GIT) tag push origin $(VERSION)
 
 
