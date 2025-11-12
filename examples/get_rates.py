@@ -10,7 +10,7 @@ client = use_content.create_client(
     secret_key=api_key, 
     user_agent="tollbit-python-sdk-example/0.1.0"
 )
-rate_info = client.get_rate(url="https://pioneervalleygazette-foo.com/daydream")
+rate_info = client.get_rate(url="https://pioneervalleygazette.com/daydream")
 
 # rate_info is a list of ContentRate objects, which is a Pydantic model.
 # We can print out the details.

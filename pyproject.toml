@@ -1,6 +1,6 @@
 [project]
 name = "tollbit-python-sdk"
-version = "0.1.0"
+version = "0.1.1"
 description = "Tollbit SDK for interacting tollbit services, including retrieving content and connecting to the API"
 authors = [
     {name = "Tollbit",email = "team@tollbit.com"}
@@ -10,8 +10,14 @@ readme = "README.md"
 requires-python = ">=3.10,<4.0"
 dependencies = [
     "requests (>=2.32.5,<3.0.0)",
-    "python-json-logger (>=4.0.0,<5.0.0)"
+    "python-json-logger (>=4.0.0,<5.0.0)",
+    "pydantic (>=2.8,<3.0)"
 ]
+
+[project.urls]
+Homepage = "https://tollbit.com"
+Repository = "https://github.com/tollbit/tollbit-python-sdk"
+Documentation = "https://github.com/tollbit/tollbit-python-sdk#readme"
 
 [tool.poetry]
 # This tells Poetry that the 'tollbit' directory inside 'src'

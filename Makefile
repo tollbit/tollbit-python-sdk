@@ -110,6 +110,10 @@ inspect-meta: build ## Show wheel metadata for this version using pkginfo
 	echo "=== 📦 Metadata for $(WHEEL) ===:"; \
 	$(PKGINFO) "$(WHEEL)"
 
+.PHONY: publish-test
+publish-test: build ## Publish package to Test PyPI
+	$(POETRY) publish -r testpypi
+
 
 .PHONY: all
 all: lint type test ## Run lint + type + tests
