@@ -1,6 +1,8 @@
 from ._generated.openapi_tollbit_apis import (
     CreateSubdomainAccessTokenRequest,
     CreateSubdomainAccessTokenResponse,
+    CreateCrawlAccessTokenRequest,
+    CreateCrawlAccessTokenResponse,
     Format,
     Error,
 )

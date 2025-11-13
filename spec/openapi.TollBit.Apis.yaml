@@ -4,7 +4,87 @@ info:
   version: 0.0.0
 tags:
   - name: Auth Tokens
+  - name: Tollbit Content
+  - name: Get Tollbit Content
 paths:
+  /dev/v2/content/{contentUrl}:
+    get:
+      operationId: ContentService_getContent
+      parameters:
+        - name: contentUrl
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetContentResponse'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+      tags:
+        - Tollbit Content
+        - Get Tollbit Content
+      security:
+        - ApiKeyAuth: []
+  /tollbit/dev/v2/tokens/aos:
+    post:
+      operationId: TokensService_createAOSAccessToken
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateAOSAccessTokenResponse'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+        - Auth Tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAOSAccessTokenRequest'
+      security:
+        - ApiKeyAuth: []
   /tollbit/dev/v2/tokens/content:
     post:
       operationId: TokensService_createContentAccessToken
@@ -32,8 +112,96 @@ paths:
               $ref: '#/components/schemas/CreateSubdomainAccessTokenRequest'
       security:
         - ApiKeyAuth: []
+  /tollbit/dev/v2/tokens/crawl:
+    post:
+      operationId: TokensService_createCrawlAccessToken
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateCrawlAccessTokenResponse'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+        - Auth Tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCrawlAccessTokenRequest'
+      security:
+        - ApiKeyAuth: []
 components:
   schemas:
+    ContentMetadata:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        author:
+          type: string
+        published:
+          type: string
+        modified:
+          type: string
+    ContentRate:
+      type: object
+      required:
+        - price
+        - license
+      properties:
+        price:
+          $ref: '#/components/schemas/RatePrice'
+        license:
+          $ref: '#/components/schemas/RateLicenseResponse'
+    CreateAOSAccessTokenRequest:
+      type: object
+      required:
+        - url
+        - userAgent
+      properties:
+        url:
+          type: string
+          format: uri
+        userAgent:
+          type: string
+    CreateAOSAccessTokenResponse:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+    CreateCrawlAccessTokenRequest:
+      type: object
+      required:
+        - url
+        - userAgent
+      properties:
+        url:
+          type: string
+          format: uri
+        userAgent:
+          type: string
+    CreateCrawlAccessTokenResponse:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
     CreateSubdomainAccessTokenRequest:
       type: object
       required:
@@ -73,6 +241,91 @@ components:
           type: string
     Error:
       type: object
+    GetContentResponse:
+      type: object
+      required:
+        - content
+        - metadata
+        - rate
+      properties:
+        content:
+          $ref: '#/components/schemas/PageContent'
+        metadata:
+          $ref: '#/components/schemas/ContentMetadata'
+        rate:
+          $ref: '#/components/schemas/ContentRate'
+    PageContent:
+      type: object
+      required:
+        - header
+        - body
+        - footer
+      properties:
+        header:
+          type: string
+        body:
+          type: string
+        footer:
+          type: string
+    ProblemJSON:
+      type: object
+      required:
+        - type
+        - title
+        - status
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+          format: int32
+        detail:
+          type: string
+        instance:
+          type: string
+      additionalProperties: {}
+    RateLicensePermission:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    RateLicenseResponse:
+      type: object
+      required:
+        - id
+        - licenseType
+        - licensePath
+        - permissions
+        - validUntil
+      properties:
+        id:
+          type: string
+        licenseType:
+          type: string
+        licensePath:
+          type: string
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RateLicensePermission'
+        validUntil:
+          type: string
+          format: date-time
+    RatePrice:
+      type: object
+      required:
+        - priceMicros
+        - currency
+      properties:
+        priceMicros:
+          type: integer
+          format: int64
+        currency:
+          type: string
     SubdomainAccessToken:
       type: object
       required:
