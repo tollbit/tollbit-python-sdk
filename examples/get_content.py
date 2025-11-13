@@ -1,5 +1,5 @@
 # In this example, we demonstrate how to use the Tollbit Python SDK 
-# to get content rate information for a specific URL.
+# to get content for a specific URL.
 from tollbit import use_content
 from tollbit import licences
 from tollbit import currencies

@@ -3,9 +3,38 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from enum import Enum
+from typing import List
 
 from pydantic import AnyUrl, BaseModel
+
+
+class ContentMetadata(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    imageUrl: str | None = None
+    author: str | None = None
+    published: str | None = None
+    modified: str | None = None
+
+
+class CreateAOSAccessTokenRequest(BaseModel):
+    url: AnyUrl
+    userAgent: str
+
+
+class CreateAOSAccessTokenResponse(BaseModel):
+    token: str
+
+
+class CreateCrawlAccessTokenRequest(BaseModel):
+    url: AnyUrl
+    userAgent: str
+
+
+class CreateCrawlAccessTokenResponse(BaseModel):
+    token: str
 
 
 class Format(Enum):
@@ -31,6 +60,37 @@ class Error(BaseModel):
     pass
 
 
+class PageContent(BaseModel):
+    header: str
+    body: str
+    footer: str
+
+
+class ProblemJSON(BaseModel):
+    type: str
+    title: str
+    status: int
+    detail: str | None = None
+    instance: str | None = None
+
+
+class RateLicensePermission(BaseModel):
+    name: str
+
+
+class RateLicenseResponse(BaseModel):
+    id: str
+    licenseType: str
+    licensePath: str
+    permissions: List[RateLicensePermission]
+    validUntil: datetime
+
+
+class RatePrice(BaseModel):
+    priceMicros: int
+    currency: str
+
+
 class Type(Enum):
     http = 'http'
 
@@ -42,3 +102,14 @@ class Scheme(Enum):
 class SubdomainAccessToken(BaseModel):
     type: Type
     scheme: Scheme
+
+
+class ContentRate(BaseModel):
+    price: RatePrice
+    license: RateLicenseResponse
+
+
+class GetContentResponse(BaseModel):
+    content: PageContent
+    metadata: ContentMetadata
+    rate: ContentRate
