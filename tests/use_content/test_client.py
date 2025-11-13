@@ -46,7 +46,7 @@ def test_get_sanctioned_content():
 
     mock_token_api = MagicMock(spec=TokenAPI)
     mock_token_api.user_agent = "test-agent"
-    mock_token_api.get_token.return_value = CreateSubdomainAccessTokenResponse(
+    mock_token_api.get_content_token.return_value = CreateSubdomainAccessTokenResponse(
         token=fake_token_str,
         format="markdown",
     )
@@ -60,7 +60,7 @@ def test_get_sanctioned_content():
     )
 
     # Assert
-    mock_token_api.get_token.assert_called_once_with(
+    mock_token_api.get_content_token.assert_called_once_with(
         CreateSubdomainAccessTokenRequest(
             url="https://example.com/bar",
             userAgent="test-agent",
@@ -88,7 +88,7 @@ def test_get_sanctioned_content_with_html():
 
     mock_token_api = MagicMock(spec=TokenAPI)
     mock_token_api.user_agent = "test-agent"
-    mock_token_api.get_token.return_value = CreateSubdomainAccessTokenResponse(
+    mock_token_api.get_content_token.return_value = CreateSubdomainAccessTokenResponse(
         token=fake_token_str,
         format="markdown",
     )
@@ -103,7 +103,7 @@ def test_get_sanctioned_content_with_html():
     )
 
     # Assert
-    mock_token_api.get_token.assert_called_once_with(
+    mock_token_api.get_content_token.assert_called_once_with(
         CreateSubdomainAccessTokenRequest(
             url="https://example.com/bar",
             userAgent="test-agent",

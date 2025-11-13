@@ -70,7 +70,7 @@ class UseContentClient:
             licenseCuid=license_id or "",
             format=format,
         )
-        token_resp = self.token_api.get_token(req)
+        token_resp = self.token_api.get_content_token(req)
         token: TollbitToken = TollbitToken(token_resp.token)
 
         results = self.content_api.get_content(
