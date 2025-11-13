@@ -183,4 +183,4 @@ make matrix-tests
 
 ## Examples
 
-_TODO_
+Example code is available in [examples](./examples/)
