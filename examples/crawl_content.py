@@ -15,7 +15,7 @@ client = crawl_content.create_client(secret_key=api_key, user_agent=user_agent)
 # This example shows how to use the crawl_content client to retrieve the content catalog for
 # a particular property.
 
-paged_results = client.get_content_catalog(
+paged_results = client.list_content_catalog(
     url="https://pioneervalleygazette.com",
     page_size=5,
 )
@@ -23,7 +23,7 @@ paged_results = client.get_content_catalog(
 print("Content Catalog Results (first page):")
 print([paged.model_dump() for paged in paged_results.contents])
 
-second_page = client.get_content_catalog(
+second_page = client.list_content_catalog(
     url="https://pioneervalleygazette.com",
     page_size=5,
     page_token=paged_results.next_page_token,

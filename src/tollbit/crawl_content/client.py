@@ -42,7 +42,7 @@ class CrawlContentClient:
         self.content_api = content_api
         self.token_api = token_api
 
-    def get_content_catalog(
+    def list_content_catalog(
         self,
         url: str,
         page_size: int = 100,

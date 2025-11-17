@@ -19,7 +19,7 @@ def test_get_content_catalog(url):
 
     client = CrawlContentClient(content_api=mock_content_api, token_api=None)
 
-    result = client.get_content_catalog(url)
+    result = client.list_content_catalog(url)
     mock_content_api.get_content_catalog.assert_called_with(
         content_domain="example.com", page_size=100, page_token=None
     )
@@ -32,5 +32,5 @@ def test_get_content_catalog_no_results():
 
     client = CrawlContentClient(content_api=mock_content_api, token_api=None)
 
-    result = client.get_content_catalog("https://nonexistent.com")
+    result = client.list_content_catalog("https://nonexistent.com")
     assert result is None
