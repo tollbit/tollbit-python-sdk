@@ -1,8 +1,12 @@
+from datetime import datetime
+from dateutil.parser import parse
 from tollbit._apis.models import (
     ContentRate,
     RatePrice,
     RateLicenseResponse,
     DeveloperContentResponseSuccess,
+    DeveloperContentCatalogResponse,
+    DeveloperContentCatalogPage,
 )
 from tollbit._apis.models._hand_rolled.get_content import (
     DeveloperContent,
@@ -51,4 +55,19 @@ def stub_content_response():
             },
             error="",
         ),
+    )
+
+
+def stub_catalog_response():
+    return DeveloperContentCatalogResponse.model_validate(
+        {
+            "pageToken": None,
+            "contents": [
+                {
+                    "propertyId": "property-123",
+                    "pageUrl": "https://example.com/content-1",
+                    "lastMod": "2024-01-01T00:00:00Z",
+                }
+            ],
+        }
     )
