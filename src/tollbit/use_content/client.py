@@ -21,6 +21,7 @@ def create_client(
 
     return UseContentClient(
         content_api=ContentAPI(
+            api_key=secret_key,
             user_agent=user_agent,
             env=env,
         ),
@@ -47,6 +48,21 @@ class UseContentClient:
     def get_rate(self, url: str) -> list[ContentRate]:
         parsed_url = urlparse(url)
         return self.content_api.get_rate(f"{parsed_url.netloc}{parsed_url.path}")
+
+    def get_content_catalog(
+        self,
+        url: str,
+        page_size: int = 100,
+        page_token: str | None = None,
+    ) -> Any:
+        parsed_url = urlparse(url)
+        results = self.content_api.get_content_catalog(
+            content_domain=f"{parsed_url.netloc}",
+            page_size=page_size,
+            page_token=page_token,
+        )
+
+        return results[0]
 
     def get_sanctioned_content(
         self,

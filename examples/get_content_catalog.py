@@ -17,7 +17,7 @@ paged_results = client.get_content_catalog(
 )
 
 print("Content Catalog Results (first page):")
-print([paged.model_dump() for paged in paged_results.results])
+print([paged.model_dump() for paged in paged_results.contents])
 
 second_page = client.get_content_catalog(
     url="https://pioneervalleygazette.com",
@@ -26,4 +26,4 @@ second_page = client.get_content_catalog(
 )
 
 print("Content Catalog Results (second page):")
-print([paged.model_dump() for paged in second_page.results])
+print([paged.model_dump() for paged in second_page.contents])
