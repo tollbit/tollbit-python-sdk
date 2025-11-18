@@ -3,6 +3,7 @@
 # intended for use with the end-user.
 
 from tollbit import crawl_content
+import content_formats
 import os
 
 # Replace with your actual organization API key or set it as an environment variable
@@ -31,3 +32,15 @@ second_page = client.list_content_catalog(
 
 print("Content Catalog Results (second page):")
 print([paged.model_dump() for paged in second_page.contents])
+
+# In this example, we demonstrate how to use the Tollbit Python SDK
+# to crawl content for a specific URL.
+data = client.crawl_content(
+    url="https://pioneervalleygazette.com/daydream",
+)
+print("Markdown data:", data)
+
+data = client.crawl_content(
+    url="https://pioneervalleygazette.com/daydream", format=content_formats.html
+)
+print("HTML data:", data)

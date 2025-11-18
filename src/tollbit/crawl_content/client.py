@@ -1,8 +1,15 @@
 from __future__ import annotations
+from tollbit.tokens import TollbitToken
 from tollbit._apis.content_api import ContentAPI
 from tollbit._apis.token_api import TokenAPI
 from urllib.parse import urlparse
-from tollbit._apis.models import DeveloperContentCatalogResponse
+from tollbit._apis.models import (
+    CreateCrawlAccessTokenRequest,
+    DeveloperContentCatalogResponse,
+    DeveloperContentResponseSuccess,
+)
+from tollbit.content_formats import Format
+from pydantic import AnyUrl
 from tollbit._environment import env_from_vars
 from tollbit._logging import get_sdk_logger
 from tollbit.forgiving_urls import parse_url_with_forgiveness
@@ -61,5 +68,27 @@ class CrawlContentClient:
 
         if len(results) == 0:
             return None
+
+        return results[0]
+
+    def crawl_content(
+        self,
+        url: str,
+        format: Format = Format.markdown,
+    ) -> DeveloperContentResponseSuccess:
+        parsed_url = urlparse(url)
+        if parsed_url.scheme not in ("http", "https"):
+            parsed_url = parsed_url._replace(scheme="https")
+
+        req = CreateCrawlAccessTokenRequest(
+            url=f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}",  # type: ignore
+            userAgent=self.token_api.user_agent,
+        )
+        token_resp = self.token_api.get_crawl_token(req)
+        token: TollbitToken = TollbitToken(token_resp.token)
+
+        results = self.content_api.get_content(
+            content_url=f"{parsed_url.netloc}{parsed_url.path}", token=token
+        )
 
         return results[0]
