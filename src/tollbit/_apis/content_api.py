@@ -92,6 +92,10 @@ class ContentAPI:
                 url,
                 headers=headers,
             )
+            logger.debug(
+                "Received content response",
+                extra={"status_code": response.status_code, "response_text": response.text},
+            )
         except requests.RequestException as e:
             logger.error(f"Error occurred while fetching content: {e}")
             raise ServerError("Unable to connect to the Tollbit server") from e
@@ -179,6 +183,8 @@ class ContentAPI:
 
 
 def _parse_get_content_response(data: Any) -> list[DeveloperContentResponseSuccess]:
+    logger.debug("Parsing get content response", extra={"data": data})
+
     if not isinstance(data, list) or not all(isinstance(item, dict) for item in data):
         logger.error("Response data is not a list of dictionaries", extra={"data": data})
         raise ParseResponseError("Response data is not a list of dictionaries")
