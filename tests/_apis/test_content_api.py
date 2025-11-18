@@ -66,6 +66,12 @@ def test_get_rate_success(patch_requests_get, test_env):
     patch_requests_get(MockResponse(json_obj=[fake_rate]))
     client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
     resp = client.get_rate("example.com/path/to/content")
+
+    requests.get.assert_called_with(
+        f"{test_env.developer_api_base_url}/dev/v1/rate/example.com/path/to/content",
+        headers={"TollbitKey": "test-secret-key", "User-Agent": "test-agent"},
+    )
+
     assert isinstance(resp, list)
     assert isinstance(resp[0], ContentRate)
 

@@ -40,7 +40,7 @@ class ContentAPI:
 
     def get_rate(self, content: str) -> list[ContentRate]:
         try:
-            headers = {"User-Agent": self.user_agent}
+            headers = {"User-Agent": self.user_agent, "TollbitKey": self.api_key}
             url = f"{self._base_url}{_GET_RATE_PATH.replace('<PATH>', content)}"
             logger.debug(
                 "Requesting content rate...",
