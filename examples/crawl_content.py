@@ -3,7 +3,7 @@
 # intended for use with the end-user.
 
 from tollbit import crawl_content
-import content_formats
+from tollbit import content_formats
 import os
 
 # Replace with your actual organization API key or set it as an environment variable
