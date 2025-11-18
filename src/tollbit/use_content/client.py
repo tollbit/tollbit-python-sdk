@@ -21,6 +21,7 @@ def create_client(
 
     return UseContentClient(
         content_api=ContentAPI(
+            api_key=secret_key,
             user_agent=user_agent,
             env=env,
         ),

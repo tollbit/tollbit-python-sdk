@@ -3,7 +3,11 @@ import os
 from pydantic import BaseModel, TypeAdapter
 from typing import Type, TypeVar, Any
 from tollbit._environment import Environment
-from tollbit._apis.models import ContentRate, DeveloperContentResponseSuccess
+from tollbit._apis.models import (
+    ContentRate,
+    DeveloperContentResponseSuccess,
+    DeveloperContentCatalogResponse,
+)
 from tollbit._apis.errors import (
     UnauthorizedError,
     BadRequestError,
@@ -16,6 +20,7 @@ from tollbit._logging import get_sdk_logger
 
 _GET_RATE_PATH = "/dev/v1/rate/<PATH>"
 _GET_CONTENT_PATH = "/dev/v1/content/<PATH>"
+_GET_CATALOG_PATH = "/dev/v1/content/<DOMAIN>/catalog/list"
 
 # Configure logging
 logger = get_sdk_logger(__name__)
@@ -24,10 +29,12 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class ContentAPI:
+    api_key: str
     user_agent: str
     _base_url: str
 
-    def __init__(self, user_agent: str, env: Environment):
+    def __init__(self, api_key: str, user_agent: str, env: Environment):
+        self.api_key = api_key
         self.user_agent = user_agent
         self._base_url = env.developer_api_base_url
 
@@ -99,6 +106,61 @@ class ContentAPI:
                 logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
                 raise BadRequestError(
                     "Bad Request: Check your request; most likely the content path is invalid or unknown."
+                )
+            case code if 500 <= code <= 599:
+                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
+                raise ServerError(f"An error occurred on Tollbit's servers: {response.status_code}")
+            case _:
+                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
+                raise UnknownError(f"An unknown error occurred: {response.status_code}")
+
+        return []  # Shouldn't get here
+
+    def get_content_catalog(
+        self,
+        content_domain: str,
+        page_size: int = 100,
+        page_token: str | None = None,
+    ) -> DeveloperContentCatalogResponse:
+        try:
+            headers = {"User-Agent": self.user_agent, "TollbitKey": self.api_key}
+            url = f"{self._base_url}{_GET_CATALOG_PATH.replace('<DOMAIN>', content_domain)}"
+            params = {"pageSize": page_size}
+            if page_token:
+                params["pageToken"] = page_token
+
+            url_with_params = requests.Request("GET", url, params=params).prepare().url
+            logger.debug(
+                "Requesting content catalog...",
+                extra={"url": url_with_params, "headers": headers},
+            )
+
+            response = requests.get(
+                url_with_params,
+                headers=headers,
+            )
+            logger.debug(
+                "Received content catalog response",
+                extra={"status_code": response.status_code, "response_text": response.text},
+            )
+
+        except requests.RequestException as e:
+            logger.error(f"Error occurred while fetching content catalog: {e}")
+            raise ServerError("Unable to connect to the Tollbit server") from e
+
+        match response.status_code:
+            case 200:
+                resp: list[DeveloperContentCatalogResponse] = TypeAdapter(
+                    list[DeveloperContentCatalogResponse]
+                ).validate_python(response.json())
+                return resp
+            case 401:
+                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
+                raise UnauthorizedError("Unauthorized: Invalid API key")
+            case 400:
+                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
+                raise BadRequestError(
+                    "Bad Request: Check your request; most likely the content domain is invalid or unknown."
                 )
             case code if 500 <= code <= 599:
                 logger.error(f"HTTP ERROR {response.status_code}: {response.text}")

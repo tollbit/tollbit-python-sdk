@@ -20,7 +20,7 @@ DRYRUN       ?= true
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 # --- paths & commands ---
-PY_SRC               := src/tollbit tests
+PY_SRC               := src/tollbit tests examples
 PY_VERS_FILE         := .python-version
 TOLLBIT_SPEC_FILES   := .typespec/tsp-output/@typespec/openapi3
 GENERATED_MODELS_DIR := src/tollbit/_apis/models/_generated
