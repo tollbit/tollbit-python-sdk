@@ -121,15 +121,21 @@ class ContentAPI:
         content_domain: str,
         page_size: int = 100,
         page_token: str | None = None,
-    ) -> DeveloperContentCatalogResponse:
+    ) -> list[DeveloperContentCatalogResponse]:
         try:
             headers = {"User-Agent": self.user_agent, "TollbitKey": self.api_key}
             url = f"{self._base_url}{_GET_CATALOG_PATH.replace('<DOMAIN>', content_domain)}"
-            params = {"pageSize": page_size}
+            params: dict[str, str | int] = {"pageSize": page_size}
             if page_token:
                 params["pageToken"] = page_token
 
             url_with_params = requests.Request("GET", url, params=params).prepare().url
+            if url_with_params is None:
+                logger.error(
+                    "Failed to prepare URL with parameters", extra={"url": url, "params": params}
+                )
+                raise ValueError("Failed to prepare URL with parameters")
+
             logger.debug(
                 "Requesting content catalog...",
                 extra={"url": url_with_params, "headers": headers},
