@@ -5,7 +5,7 @@ from typing import Any
 from tollbit._apis.content_api import ContentAPI
 from tollbit._apis.token_api import TokenAPI
 from urllib.parse import urlparse
-from tollbit._apis.models import CreateSubdomainAccessTokenRequest
+from tollbit._apis.models import CreateSubdomainAccessTokenRequest, DeveloperContentResponseSuccess
 from tollbit.content_formats import Format
 from tollbit.currencies import Currency
 from tollbit.licences import LicenceType
@@ -57,7 +57,7 @@ class UseContentClient:
         license_type: LicenceType,
         license_id: str | None = None,
         format: Format = Format.markdown,
-    ) -> Any:
+    ) -> DeveloperContentResponseSuccess:
         parsed_url = urlparse(url)
         if parsed_url.scheme not in ("http", "https"):
             parsed_url = parsed_url._replace(scheme="https")

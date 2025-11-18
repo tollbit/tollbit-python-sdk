@@ -1,6 +1,7 @@
 from __future__ import annotations
 from pydantic import AnyUrl, BaseModel, Field, field_validator
 from datetime import datetime
+from typing import Any
 
 # This supports older versions of python which do not correctly parse ISO 8601 datetime strings
 from dateutil.parser import isoparse
@@ -20,7 +21,7 @@ class DeveloperContentCatalogPage(BaseModel):
 
     @field_validator("last_mod", mode="before")
     @classmethod
-    def parse_last_mod(cls, v):
+    def parse_last_mod(cls: type[DeveloperContentCatalogPage], v: str | None) -> datetime | None:
         if v is None:
             return v
         return isoparse(v)

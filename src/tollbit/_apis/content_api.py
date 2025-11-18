@@ -92,6 +92,10 @@ class ContentAPI:
                 url,
                 headers=headers,
             )
+            logger.debug(
+                "Received content response",
+                extra={"status_code": response.status_code, "response_text": response.text},
+            )
         except requests.RequestException as e:
             logger.error(f"Error occurred while fetching content: {e}")
             raise ServerError("Unable to connect to the Tollbit server") from e
@@ -121,15 +125,21 @@ class ContentAPI:
         content_domain: str,
         page_size: int = 100,
         page_token: str | None = None,
-    ) -> DeveloperContentCatalogResponse:
+    ) -> list[DeveloperContentCatalogResponse]:
         try:
             headers = {"User-Agent": self.user_agent, "TollbitKey": self.api_key}
             url = f"{self._base_url}{_GET_CATALOG_PATH.replace('<DOMAIN>', content_domain)}"
-            params = {"pageSize": page_size}
+            params: dict[str, str | int] = {"pageSize": page_size}
             if page_token:
                 params["pageToken"] = page_token
 
             url_with_params = requests.Request("GET", url, params=params).prepare().url
+            if url_with_params is None:
+                logger.error(
+                    "Failed to prepare URL with parameters", extra={"url": url, "params": params}
+                )
+                raise ValueError("Failed to prepare URL with parameters")
+
             logger.debug(
                 "Requesting content catalog...",
                 extra={"url": url_with_params, "headers": headers},
@@ -173,6 +183,8 @@ class ContentAPI:
 
 
 def _parse_get_content_response(data: Any) -> list[DeveloperContentResponseSuccess]:
+    logger.debug("Parsing get content response", extra={"data": data})
+
     if not isinstance(data, list) or not all(isinstance(item, dict) for item in data):
         logger.error("Response data is not a list of dictionaries", extra={"data": data})
         raise ParseResponseError("Response data is not a list of dictionaries")

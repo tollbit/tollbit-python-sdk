@@ -1,7 +1,7 @@
-from urllib.parse import urlparse
+from urllib.parse import urlparse, ParseResult
 
 
-def parse_url_with_forgiveness(url: str) -> urlparse:
+def parse_url_with_forgiveness(url: str) -> ParseResult:
     """Parse a URL, adding 'https://' if no scheme is present."""
     if not urlparse(url).scheme:
         url_to_parse = f"https://{url}"
