@@ -1,6 +1,6 @@
 import logging
 import os
-from pythonjsonlogger import jsonlogger
+from pythonjsonlogger import json as jsonlogger
 
 
 def _build_sdk_root_logger(name: str) -> logging.Logger:
