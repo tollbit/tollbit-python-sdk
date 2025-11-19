@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0 - 2025-11-18
+
+### Added
+
+- Added crawl_client
+  - Added get_content_catalog
+  - Added crawl_content
+
+### Fixed
+
+- Updated get_rate to include api key in header
+
 ## 0.1.1 - 2025-11-12
 
 ### Added

@@ -96,6 +96,7 @@ Tollbit's python SDK for interacting with Tollbit's services. Pull this directly
 
 The SDK currently supports the following operations:
 
+- [Indexing content to assist with knowledge graphs](#indexing-content)
 - [Checking rates for paid content](#checking-rates)
 - [Access paid content using your organization's API key](#accessing-paid-content)
 
@@ -104,6 +105,30 @@ The SDK currently supports the following operations:
 ```shell
 pip install tollbit-python-sdk
 ```
+
+## Indexing Content
+
+```python
+from tollbit import crawl_content
+from tollbit import content_formats
+
+client = crawl_content.create_client(
+    secret_key="YOUR API KEY",
+    user_agent="YOUR USER AGENT"
+)
+
+pages = client.list_content_catalog(
+    url="https://pioneervalleygazette.com",
+    page_size=5,
+)
+
+for page in page:
+    print(f"URL: {page.page_url} Last Modified: {page.last_mod}")
+    data = client.crawl_content(url=page.page_url)
+    print(data.content.main)
+```
+
+For more examples please see [examples/crawl_content.py](examples/crawl_content.py)
 
 ## Checking Rates
 
