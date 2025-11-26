@@ -52,6 +52,27 @@ def stub_content_response():
     )
 
 
+def stub_crawl_response():
+    return GetContentResponse.model_validate(
+        {
+            "metadata": {
+                "title": "Sample Title",
+                "description": "Sample Description",
+                "imageUrl": "https://example.com/image.png",
+                "author": "Author Name",
+                "published": "2024-01-01T00:00:00Z",
+                "modified": "2024-01-02T00:00:00Z",
+            },
+            "content": {
+                "header": "<header>Header Content</header>",
+                "body": "<main>Main Content</main>",
+                "footer": "<footer>Footer Content</footer>",
+            },
+            "rate": None,
+        }
+    )
+
+
 def stub_catalog_response():
     return DeveloperContentCatalogResponse.model_validate(
         {

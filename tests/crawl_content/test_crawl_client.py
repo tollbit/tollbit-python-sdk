@@ -1,8 +1,11 @@
 import pytest
 from tollbit.crawl_content.client import CrawlContentClient
 from tollbit._apis.content_api import ContentAPI
+from tollbit._apis.token_api import TokenAPI
+from tollbit._apis.models import CreateCrawlAccessTokenRequest, CreateCrawlAccessTokenResponse
+from tollbit.tokens import TollbitToken
 from unittest.mock import MagicMock
-from test_helpers.stub_api_responses import stub_catalog_response
+from test_helpers.stub_api_responses import stub_catalog_response, stub_crawl_response
 
 
 @pytest.mark.parametrize(
@@ -34,3 +37,36 @@ def test_get_content_catalog_no_results():
 
     result = client.list_content_catalog("https://nonexistent.com")
     assert result is None
+
+
+def test_crawl_content():
+    fake_token_str = "tok_123"
+    fake_content_url = "example.com/bar"
+    fake_response = stub_crawl_response()
+
+    mock_content_api = MagicMock(spec=ContentAPI)
+    mock_content_api.get_content.return_value = fake_response
+
+    mock_token_api = MagicMock(spec=TokenAPI)
+    mock_token_api.user_agent = "test-agent"
+    mock_token_api.get_crawl_token.return_value = CreateCrawlAccessTokenResponse(
+        token=fake_token_str,
+    )
+    # Call the method
+    client = CrawlContentClient(content_api=mock_content_api, token_api=mock_token_api)
+    result = client.crawl_content(
+        url=fake_content_url,
+    )
+
+    # Assert
+    mock_token_api.get_crawl_token.assert_called_once_with(
+        CreateCrawlAccessTokenRequest(
+            url="https://example.com/bar",
+            userAgent="test-agent",
+        )
+    )
+
+    mock_content_api.get_content.assert_called_once_with(
+        content_url=fake_content_url, token=TollbitToken(fake_token_str)
+    )
+    assert result == fake_response
