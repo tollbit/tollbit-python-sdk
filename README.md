@@ -139,7 +139,7 @@ client = use_content.create_client(
     secret_key="YOUR API KEY", 
     user_agent="YOUR USER AGENT"
 )
-rate_info = client.get_rate(url="https://pioneervalleygazette-foo.com/daydream")
+rate_info = client.get_rate(url="https://pioneervalleygazette.com/daydream")
 ```
 
 For more examples please see [examples/get_rates.py](examples/get_rates.py).
