@@ -6,6 +6,10 @@ tags:
   - name: Auth Tokens
   - name: Tollbit Content
   - name: Get Tollbit Content
+  - name: Get Tollbit Rates
+  - name: Get Catalog of Pages for Property
+  - name: Search
+  - name: Search Content
 paths:
   /dev/v2/content/{contentUrl}:
     get:
@@ -57,6 +61,207 @@ paths:
         - Tollbit Content
         - Get Tollbit Content
       security:
+        - ApiKeyAuth_: []
+  /dev/v2/content/{propertyDomain}/catalog/list:
+    get:
+      operationId: ContentService_getCatalog
+      parameters:
+        - name: propertyDomain
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: pageToken
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogResponse'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+      tags:
+        - Tollbit Content
+        - Get Catalog of Pages for Property
+      security:
+        - ApiKeyAuth: []
+  /dev/v2/rates/{contentUrl}:
+    get:
+      operationId: ContentService_getRates
+      parameters:
+        - name: contentUrl
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeveloperRateResponse'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+      tags:
+        - Tollbit Content
+        - Get Tollbit Rates
+      security:
+        - ApiKeyAuth: []
+  /dev/v2/search:
+    get:
+      operationId: SearchService_search
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          explode: false
+        - name: size
+          in: query
+          required: false
+          description: Number of results to return. Maximum value is 20.
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: next-token
+          in: query
+          required: false
+          description: Token for pagination. If provided, continues from the encoded page. If not provided, returns first page.
+          schema:
+            type: string
+          explode: false
+        - name: properties
+          in: query
+          required: false
+          description: Comma-separated list of domains (max 20) to boost in search results. When provided, generates a custom goggle string.
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - nextToken
+                  - items
+                properties:
+                  nextToken:
+                    type: string
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchResult'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+      tags:
+        - Search
+        - Search Content
+      security:
         - ApiKeyAuth: []
   /tollbit/dev/v2/tokens/aos:
     post:
@@ -74,7 +279,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ProblemJSON'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
       tags:
         - Auth Tokens
       requestBody:
@@ -101,7 +330,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ProblemJSON'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
       tags:
         - Auth Tokens
       requestBody:
@@ -128,7 +381,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ProblemJSON'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
       tags:
         - Auth Tokens
       requestBody:
@@ -141,6 +418,27 @@ paths:
         - ApiKeyAuth: []
 components:
   schemas:
+    Availability:
+      type: object
+      required:
+        - discoverable
+        - ready_to_license
+      properties:
+        discoverable:
+          type: boolean
+        ready_to_license:
+          type: boolean
+    CatalogResponse:
+      type: object
+      required:
+        - pages
+      properties:
+        pageToken:
+          type: string
+        pages:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropertyPage'
     ContentMetadata:
       type: object
       properties:
@@ -239,6 +537,16 @@ components:
       properties:
         token:
           type: string
+    DeveloperRateResponse:
+      type: object
+      required:
+        - price
+        - license
+      properties:
+        price:
+          $ref: '#/components/schemas/RatePrice'
+        license:
+          $ref: '#/components/schemas/RateLicenseResponse'
     Error:
       type: object
     GetContentResponse:
@@ -246,7 +554,6 @@ components:
       required:
         - content
         - metadata
-        - rate
       properties:
         content:
           $ref: '#/components/schemas/PageContent'
@@ -286,6 +593,29 @@ components:
         instance:
           type: string
       additionalProperties: {}
+    PropertyPage:
+      type: object
+      required:
+        - propertyId
+        - pageUrl
+      properties:
+        propertyId:
+          type: string
+        pageUrl:
+          type: string
+        lastMod:
+          type: string
+          format: date-time
+    Publisher:
+      type: object
+      required:
+        - domain
+        - name
+      properties:
+        domain:
+          type: string
+        name:
+          type: string
     RateLicensePermission:
       type: object
       required:
@@ -326,6 +656,25 @@ components:
           format: int64
         currency:
           type: string
+    SearchResult:
+      type: object
+      required:
+        - title
+        - url
+        - published_date
+        - publisher
+        - availability
+      properties:
+        title:
+          type: string
+        url:
+          type: string
+        published_date:
+          type: string
+        publisher:
+          $ref: '#/components/schemas/Publisher'
+        availability:
+          $ref: '#/components/schemas/Availability'
     SubdomainAccessToken:
       type: object
       required:
@@ -349,6 +698,10 @@ components:
       type: apiKey
       in: header
       name: TollbitKey
+    ApiKeyAuth_:
+      type: apiKey
+      in: header
+      name: TollbitToken
 servers:
   - url: https://gateway.tollbit.com
     variables: {}

@@ -5,10 +5,11 @@ from ._generated.openapi_tollbit_apis import (
     CreateCrawlAccessTokenResponse,
     Format,
     Error,
+    ProblemJSON,
+    GetContentResponse,
 )
-from ._generated.openapi_tollbit_subdomain import ContentRate, RatePrice, RateLicenseResponse
+from ._hand_rolled.old_subdomain_models import ContentRate, RatePrice, RateLicenseResponse
 
-from ._hand_rolled.get_content import DeveloperContentResponseSuccess
 from ._hand_rolled.get_content_catalog import (
     DeveloperContentCatalogResponse,
     DeveloperContentCatalogPage,

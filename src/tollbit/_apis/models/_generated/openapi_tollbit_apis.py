@@ -10,6 +10,11 @@ from typing import List
 from pydantic import AnyUrl, BaseModel
 
 
+class Availability(BaseModel):
+    discoverable: bool
+    ready_to_license: bool
+
+
 class ContentMetadata(BaseModel):
     title: str | None = None
     description: str | None = None
@@ -74,6 +79,17 @@ class ProblemJSON(BaseModel):
     instance: str | None = None
 
 
+class PropertyPage(BaseModel):
+    propertyId: str
+    pageUrl: str
+    lastMod: datetime | None = None
+
+
+class Publisher(BaseModel):
+    domain: str
+    name: str
+
+
 class RateLicensePermission(BaseModel):
     name: str
 
@@ -91,6 +107,14 @@ class RatePrice(BaseModel):
     currency: str
 
 
+class SearchResult(BaseModel):
+    title: str
+    url: str
+    published_date: str
+    publisher: Publisher
+    availability: Availability
+
+
 class Type(Enum):
     http = 'http'
 
@@ -104,7 +128,17 @@ class SubdomainAccessToken(BaseModel):
     scheme: Scheme
 
 
+class CatalogResponse(BaseModel):
+    pageToken: str | None = None
+    pages: List[PropertyPage]
+
+
 class ContentRate(BaseModel):
+    price: RatePrice
+    license: RateLicenseResponse
+
+
+class DeveloperRateResponse(BaseModel):
     price: RatePrice
     license: RateLicenseResponse
 
@@ -112,4 +146,4 @@ class ContentRate(BaseModel):
 class GetContentResponse(BaseModel):
     content: PageContent
     metadata: ContentMetadata
-    rate: ContentRate
+    rate: ContentRate | None = None
