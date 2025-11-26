@@ -42,7 +42,7 @@ def test_get_sanctioned_content():
     fake_response = stub_content_response()
 
     mock_content_api = MagicMock(spec=ContentAPI)
-    mock_content_api.get_content.return_value = [fake_response]
+    mock_content_api.get_content.return_value = fake_response
 
     mock_token_api = MagicMock(spec=TokenAPI)
     mock_token_api.user_agent = "test-agent"
@@ -84,7 +84,7 @@ def test_get_sanctioned_content_with_html():
     fake_response = stub_content_response()
 
     mock_content_api = MagicMock(spec=ContentAPI)
-    mock_content_api.get_content.return_value = [fake_response]
+    mock_content_api.get_content.return_value = fake_response
 
     mock_token_api = MagicMock(spec=TokenAPI)
     mock_token_api.user_agent = "test-agent"
