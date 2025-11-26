@@ -5,11 +5,12 @@ from tollbit._apis.errors import (
     BadRequestError,
     ServerError,
     UnknownError,
+    ApiError,
 )
 from tollbit._apis.models import ContentRate
 from tollbit.tokens import TollbitToken
 import requests
-from tollbit._apis.models._hand_rolled.get_content import DeveloperContentResponseSuccess
+from tollbit._apis.models import GetContentResponse
 from unittest import mock
 
 
@@ -26,6 +27,15 @@ class MockResponse:
     @property
     def text(self):
         return self.body_text
+
+    @property
+    def headers(self):
+        text_type = "application/json" if self._json_obj is not None else "text/plain"
+        return {"Content-Type": text_type}
+
+    @property
+    def reason(self):
+        return self.body_text or "OK"
 
 
 # Patch requests.get for testing
@@ -48,6 +58,7 @@ def mock_server_down(monkeypatch):
 
 
 # --- Tests ---
+# ======= Get Rate Tests =======
 def test_get_rate_success(patch_requests_get, test_env):
     # Simulate a valid ContentRate list response
     fake_rate = {
@@ -103,8 +114,8 @@ def test_get_rate_unreachable(mock_server_down, test_env):
         client.get_rate("example.com/path/to/content")
 
 
+# ======= Get Content Tests =======
 def test_get_content_success(patch_requests_get, test_env):
-
     fake_content = {
         "metadata": {
             "title": "Sample Title",
@@ -116,7 +127,7 @@ def test_get_content_success(patch_requests_get, test_env):
         },
         "content": {
             "header": "<header>Header Content</header>",
-            "main": "<main>Main Content</main>",
+            "body": "<main>Main Content</main>",
             "footer": "<footer>Footer Content</footer>",
         },
         "rate": {
@@ -125,7 +136,7 @@ def test_get_content_success(patch_requests_get, test_env):
                 "currency": "USD",
             },
             "license": {
-                "cuid": "license-cuid",
+                "id": "license-cuid",
                 "licenseType": "STANDARD",
                 "licensePath": "/licenses/standard",
                 "permissions": [],
@@ -134,17 +145,29 @@ def test_get_content_success(patch_requests_get, test_env):
             "error": "",
         },
     }
-    patch_requests_get(MockResponse(json_obj=[fake_content]))
+    patch_requests_get(MockResponse(json_obj=fake_content))
     client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
     resp = client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content")
-    assert isinstance(resp, list)
-    assert isinstance(resp[0], DeveloperContentResponseSuccess)
+    assert isinstance(resp, GetContentResponse)
 
 
-def test_get_content_bad_token(patch_requests_get, test_env):
-    fake_response = [
-        {
-            "price": {"priceMicros": 1000, "currency": "USD"},
+# https://linear.app/tollbit/issue/TOL-1184/getcontent-v2-returns-empty-response-for-no-content
+@pytest.mark.skip(
+    reason="This currently returns an empty object instead of a 404. We need to discuss this for V2"
+)
+def test_get_content_no_content(patch_requests_get):
+    fake_response = {
+        "content": {"header": "", "body": "", "footer": ""},
+        "metadata": {
+            "title": None,
+            "description": None,
+            "imageUrl": None,
+            "author": None,
+            "published": None,
+            "modified": None,
+        },
+        "rate": {
+            "price": {"priceMicros": 7000, "currency": "USD"},
             "license": {
                 "cuid": "r6y1oozkapcoyzfm6dgc7813",
                 "licenseType": "ON_DEMAND_LICENSE",
@@ -152,55 +175,8 @@ def test_get_content_bad_token(patch_requests_get, test_env):
                 "permissions": [{"name": "PARTIAL_USE"}],
                 "validUntil": "2024-12-13T00:00:21Z",
             },
-            "error": "error parsing content token: could not parse jwt when validating content access token: could not parse jwt when validating content access token: error parsing tollbit token: token signature is invalid: crypto/ecdsa: verification error",
         },
-        {
-            "price": {"priceMicros": 0, "currency": "USD"},
-            "license": {
-                "cuid": "arims1b01jel3a8pq5t36zz6",
-                "licenseType": "ON_DEMAND_FULL_USE_LICENSE",
-                "licensePath": "http://dev-api.tollbit.com/license/b7vrnorhwjg1vgrrr93gijcx/ON_DEMAND_FULL_USE_LICENSE_avsuhtj5e6wn0y5dmsah4jkz",
-                "permissions": [{"name": "FULL_USE"}, {"name": "PARTIAL_USE"}],
-                "validUntil": "2024-12-13T00:00:21Z",
-            },
-            "error": "error parsing content token: could not parse jwt when validating content access token: could not parse jwt when validating content access token: error parsing tollbit token: token signature is invalid: crypto/ecdsa: verification error",
-        },
-    ]
-
-    patch_requests_get(MockResponse(json_obj=fake_response))
-    client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    with pytest.raises(UnauthorizedError):
-        client.get_content(TollbitToken("invalid-token"), "example.com/path/to/content")
-
-
-@pytest.mark.skip(
-    reason="This currently returns an empty object instead of a 404. We need to discuss this for V2"
-)
-def test_get_content_no_content(patch_requests_get):
-    fake_response = [
-        {
-            "content": {"header": "", "main": "", "footer": ""},
-            "metadata": {
-                "title": None,
-                "description": None,
-                "imageUrl": None,
-                "author": None,
-                "published": None,
-                "modified": None,
-            },
-            "rate": {
-                "price": {"priceMicros": 7000, "currency": "USD"},
-                "license": {
-                    "cuid": "r6y1oozkapcoyzfm6dgc7813",
-                    "licenseType": "ON_DEMAND_LICENSE",
-                    "licensePath": "http://dev-api.tollbit.com/license/b7vrnorhwjg1vgrrr93gijcx/ON_DEMAND_LICENSE_qii52lfti6b5s6b314hu9hpo",
-                    "permissions": [{"name": "PARTIAL_USE"}],
-                    "validUntil": "2024-12-13T00:00:21Z",
-                },
-                "error": "",
-            },
-        }
-    ]
+    }
 
     patch_requests_get(MockResponse(json_obj=fake_response))
     client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", environment="local")
@@ -209,18 +185,35 @@ def test_get_content_no_content(patch_requests_get):
         client.get_content(TollbitToken("dummy-token"), "nosuchurl.com/imaginary")
 
 
-def test_get_content_server_error(patch_requests_get, test_env):
-    patch_requests_get(MockResponse(body_text="Server Error", status_code=500))
+def test_get_content_problem_json_error(patch_requests_get, test_env):
+    fake_response = {
+        "detail": "Fail",
+        "instance": "/dev/v2/content/pioneervalleygazette.com/daydream",
+        "status": 500,
+        "title": "Internal Server Error",
+        "type": "about:blank",
+    }
+
+    patch_requests_get(MockResponse(json_obj=fake_response, status_code=500))
     client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    with pytest.raises(ServerError):
+    with pytest.raises(ApiError) as exc_info:
         client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content")
 
+    error = exc_info.value
+    assert (
+        str(error)
+        == "API Error: (500) Internal Server Error - Fail (instance: /dev/v2/content/pioneervalleygazette.com/daydream)"
+    )
 
-def test_get_content_unknown_error(patch_requests_get, test_env):
+
+def test_get_content_non_problem_json_error(patch_requests_get, test_env):
     patch_requests_get(MockResponse(body_text="Teapots on the attack", status_code=418))
     client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    with pytest.raises(UnknownError):
+    with pytest.raises(ApiError) as exc_info:
         client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content")
+
+    error = exc_info.value
+    assert str(error) == "API Error: (418) Teapots on the attack"
 
 
 def test_get_content_unreachable(mock_server_down, test_env):
@@ -229,6 +222,7 @@ def test_get_content_unreachable(mock_server_down, test_env):
         client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content")
 
 
+# ======= Get Content Catalog Tests =======
 def test_get_content_catalog_success(patch_requests_get, test_env):
     fake_catalog = {
         "contents": [

@@ -5,7 +5,7 @@ from typing import Type, TypeVar, Any
 from tollbit._environment import Environment
 from tollbit._apis.models import (
     ContentRate,
-    DeveloperContentResponseSuccess,
+    GetContentResponse,
     DeveloperContentCatalogResponse,
 )
 from tollbit._apis.errors import (
@@ -14,12 +14,13 @@ from tollbit._apis.errors import (
     ServerError,
     ParseResponseError,
     UnknownError,
+    ApiError,
 )
 from tollbit.tokens import TollbitToken
 from tollbit._logging import get_sdk_logger
 
 _GET_RATE_PATH = "/dev/v1/rate/<PATH>"
-_GET_CONTENT_PATH = "/dev/v1/content/<PATH>"
+_GET_CONTENT_PATH = "/dev/v2/content/<PATH>"
 _GET_CATALOG_PATH = "/dev/v1/content/<DOMAIN>/catalog/list"
 
 # Configure logging
@@ -77,9 +78,7 @@ class ContentAPI:
 
         return []  # Shouldn't get here
 
-    def get_content(
-        self, token: TollbitToken, content_url: str
-    ) -> list[DeveloperContentResponseSuccess]:
+    def get_content(self, token: TollbitToken, content_url: str) -> GetContentResponse:
         # Implementation for fetching content using the provided token
         try:
             headers = {"User-Agent": self.user_agent, "TollbitToken": str(token)}
@@ -100,25 +99,12 @@ class ContentAPI:
             logger.error(f"Error occurred while fetching content: {e}")
             raise ServerError("Unable to connect to the Tollbit server") from e
 
-        match response.status_code:
-            case 200:
-                return _parse_get_content_response(response.json())
-            case 401:
-                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-                raise UnauthorizedError("Unauthorized: Invalid API key")
-            case 400:
-                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-                raise BadRequestError(
-                    "Bad Request: Check your request; most likely the content path is invalid or unknown."
-                )
-            case code if 500 <= code <= 599:
-                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-                raise ServerError(f"An error occurred on Tollbit's servers: {response.status_code}")
-            case _:
-                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-                raise UnknownError(f"An unknown error occurred: {response.status_code}")
+        if response.status_code != 200:
+            err = ApiError.from_response(response)
+            logger.error(str(err))
+            raise err
 
-        return []  # Shouldn't get here
+        return _parse_get_content_response(response.json())
 
     def get_content_catalog(
         self,
@@ -182,24 +168,7 @@ class ContentAPI:
         return []  # Shouldn't get here
 
 
-def _parse_get_content_response(data: Any) -> list[DeveloperContentResponseSuccess]:
+def _parse_get_content_response(data: Any) -> GetContentResponse:
     logger.debug("Parsing get content response", extra={"data": data})
 
-    if not isinstance(data, list) or not all(isinstance(item, dict) for item in data):
-        logger.error("Response data is not a list of dictionaries", extra={"data": data})
-        raise ParseResponseError("Response data is not a list of dictionaries")
-
-    if len(data) == 0:
-        raise ParseResponseError("Response data is an empty list")
-
-    if "error" in data[0]:
-        raise _guess_error(data[0]["error"])
-
-    return TypeAdapter(list[DeveloperContentResponseSuccess]).validate_python(data)
-
-
-def _guess_error(error_str: str) -> Exception:
-    if "error parsing content token" in error_str.lower():
-        return UnauthorizedError(f"Unauthorized: Invalid Token key: {error_str.lower()}")
-    else:
-        return ServerError(f"An error occurred on Tollbit's servers: {error_str}")
+    return TypeAdapter(GetContentResponse).validate_python(data)
