@@ -1,5 +1,7 @@
+from __future__ import annotations
 from tollbit._apis.models import ProblemJSON
 from tollbit._logging import get_sdk_logger
+from requests import Response
 
 logger = get_sdk_logger(__name__)
 
@@ -19,7 +21,7 @@ class ApiError(RuntimeError):
         self._raw_message = raw_message
 
     @classmethod
-    def from_response(cls, response) -> "ApiError":
+    def from_response(cls, response: Response) -> ApiError:
         content_type = response.headers.get("Content-Type", "")
         if "application/json" in content_type:
             try:
