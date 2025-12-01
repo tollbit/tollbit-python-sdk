@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1 - 2025-12-01
+
+### Added
+- Added type hints
+
+### Changed
+- Updated get content apis to use V2 routes
+
 ## 0.2.0 - 2025-11-18
 
 ### Added
