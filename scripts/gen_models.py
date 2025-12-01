@@ -39,7 +39,19 @@ def run():
             "--disable-timestamp",
         ]
         print("Generating:", spec.name, "->", mod_file.name)
-        subprocess.run(cmd, check=True)
+        try:
+            result = subprocess.run(cmd, check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error generating models for {spec.name}: {e.returncode}", file=sys.stderr)
+            print("=== command ===")
+            print(e.cmd)
+            if e.stdout:
+                print("=== stdout ===", file=sys.stderr)
+                print(e.stdout, file=sys.stderr)
+            if e.stderr:
+                print("=== stderr ===", file=sys.stderr)
+                print(e.stderr, file=sys.stderr)
+            sys.exit(1)
 
     print("Done. Generated models under", OUT_DIR)
 
