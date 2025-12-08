@@ -48,7 +48,6 @@ def test_get_sanctioned_content():
     mock_token_api.user_agent = "test-agent"
     mock_token_api.get_content_token.return_value = CreateSubdomainAccessTokenResponse(
         token=fake_token_str,
-        format="markdown",
     )
     # Call the method
     client = UseContentClient(content_api=mock_content_api, token_api=mock_token_api)
@@ -68,12 +67,11 @@ def test_get_sanctioned_content():
             currency="USD",
             licenseType="ON_DEMAND_LICENSE",
             licenseCuid="",
-            format="markdown",
         )
     )
 
     mock_content_api.get_content.assert_called_once_with(
-        content_url=fake_content_url, token=TollbitToken(fake_token_str)
+        content_url=fake_content_url, token=TollbitToken(fake_token_str), format=Format.markdown
     )
     assert result == fake_response
 
@@ -111,11 +109,10 @@ def test_get_sanctioned_content_with_html():
             currency="USD",
             licenseType="ON_DEMAND_LICENSE",
             licenseCuid="",
-            format="html",
         )
     )
     mock_content_api.get_content.assert_called_once_with(
-        content_url=fake_content_url, token=TollbitToken(fake_token_str)
+        content_url=fake_content_url, token=TollbitToken(fake_token_str), format=Format.html
     )
 
     assert result == fake_response

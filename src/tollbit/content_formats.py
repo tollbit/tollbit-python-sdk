@@ -1,8 +1,15 @@
 from tollbit._apis.models import Format as APIFormat
+from dataclasses import dataclass
+from enum import Enum
 
-# We create an alias here in order to allow us to change the underlying
-# implementation without affecting users of this module.
-Format = APIFormat
+@dataclass(frozen=True)
+class FormatData:
+    header_string: str
 
-html = APIFormat.html
-markdown = APIFormat.markdown
+class Format(Enum):
+    html = FormatData(
+        header_string="text/html",
+    )
+    markdown = FormatData(
+        header_string="text/markdown",
+    )

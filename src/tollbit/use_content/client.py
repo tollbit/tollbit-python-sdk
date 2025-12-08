@@ -69,13 +69,12 @@ class UseContentClient:
             currency=currency.value,
             licenseType=license_type.value,
             licenseCuid=license_id or "",
-            format=format,
         )
         token_resp = self.token_api.get_content_token(req)
         token: TollbitToken = TollbitToken(token_resp.token)
 
         response = self.content_api.get_content(
-            content_url=f"{parsed_url.netloc}{parsed_url.path}", token=token
+            content_url=f"{parsed_url.netloc}{parsed_url.path}", token=token, format=format
         )
 
         return response

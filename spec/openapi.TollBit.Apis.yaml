@@ -509,7 +509,6 @@ components:
         - currency
         - licenseType
         - licenseCuid
-        - format
       properties:
         url:
           type: string
