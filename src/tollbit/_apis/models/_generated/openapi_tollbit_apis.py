@@ -54,7 +54,7 @@ class CreateSubdomainAccessTokenRequest(BaseModel):
     currency: str
     licenseType: str
     licenseCuid: str
-    format: Format
+    format: Format | None = None
 
 
 class CreateSubdomainAccessTokenResponse(BaseModel):

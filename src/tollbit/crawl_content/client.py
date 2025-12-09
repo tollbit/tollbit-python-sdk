@@ -88,7 +88,7 @@ class CrawlContentClient:
         token: TollbitToken = TollbitToken(token_resp.token)
 
         response = self.content_api.get_content(
-            content_url=f"{parsed_url.netloc}{parsed_url.path}", token=token
+            content_url=f"{parsed_url.netloc}{parsed_url.path}", token=token, format=format
         )
 
         return response

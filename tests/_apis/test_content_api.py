@@ -12,6 +12,7 @@ from tollbit.tokens import TollbitToken
 import requests
 from tollbit._apis.models import GetContentResponse
 from unittest import mock
+from tollbit.content_formats import Format
 
 
 # --- Mocks and Fixtures ---
@@ -147,7 +148,7 @@ def test_get_content_success(patch_requests_get, test_env):
     }
     patch_requests_get(MockResponse(json_obj=fake_content))
     client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    resp = client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content")
+    resp = client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content", Format.html)
     assert isinstance(resp, GetContentResponse)
 
 
@@ -182,7 +183,7 @@ def test_get_content_no_content(patch_requests_get):
     client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", environment="local")
 
     with pytest.raises(BadRequestError):
-        client.get_content(TollbitToken("dummy-token"), "nosuchurl.com/imaginary")
+        client.get_content(TollbitToken("dummy-token"), "nosuchurl.com/imaginary", Format.html)
 
 
 def test_get_content_problem_json_error(patch_requests_get, test_env):
@@ -197,7 +198,7 @@ def test_get_content_problem_json_error(patch_requests_get, test_env):
     patch_requests_get(MockResponse(json_obj=fake_response, status_code=500))
     client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
     with pytest.raises(ApiError) as exc_info:
-        client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content")
+        client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content", Format.html)
 
     error = exc_info.value
     assert (
@@ -210,7 +211,7 @@ def test_get_content_non_problem_json_error(patch_requests_get, test_env):
     patch_requests_get(MockResponse(body_text="Teapots on the attack", status_code=418))
     client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
     with pytest.raises(ApiError) as exc_info:
-        client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content")
+        client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content", Format.html)
 
     error = exc_info.value
     assert str(error) == "API Error: (418) Teapots on the attack"
@@ -219,7 +220,7 @@ def test_get_content_non_problem_json_error(patch_requests_get, test_env):
 def test_get_content_unreachable(mock_server_down, test_env):
     client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
     with pytest.raises(ServerError):
-        client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content")
+        client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content", Format.html)
 
 
 # ======= Get Content Catalog Tests =======

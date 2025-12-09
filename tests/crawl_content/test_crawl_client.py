@@ -6,6 +6,7 @@ from tollbit._apis.models import CreateCrawlAccessTokenRequest, CreateCrawlAcces
 from tollbit.tokens import TollbitToken
 from unittest.mock import MagicMock
 from test_helpers.stub_api_responses import stub_catalog_response, stub_crawl_response
+from tollbit.content_formats import Format
 
 
 @pytest.mark.parametrize(
@@ -67,6 +68,6 @@ def test_crawl_content():
     )
 
     mock_content_api.get_content.assert_called_once_with(
-        content_url=fake_content_url, token=TollbitToken(fake_token_str)
+        content_url=fake_content_url, token=TollbitToken(fake_token_str), format=Format.markdown
     )
     assert result == fake_response
