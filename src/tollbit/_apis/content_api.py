@@ -58,6 +58,7 @@ class ContentAPI:
 
         match response.status_code:
             case 200:
+                logger.debug("Raw response", extra={"response_text": response.text})
                 resp: list[ContentRate] = TypeAdapter(list[ContentRate]).validate_python(
                     response.json()
                 )

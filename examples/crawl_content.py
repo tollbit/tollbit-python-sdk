@@ -3,7 +3,7 @@
 # intended for use with the end-user.
 
 from tollbit import crawl_content
-from tollbit.content_formats import Format
+from tollbit import content_formats
 import os
 
 # Replace with your actual organization API key or set it as an environment variable
@@ -41,6 +41,6 @@ data = client.crawl_content(
 print("Markdown data:", data)
 
 data = client.crawl_content(
-    url="https://pioneervalleygazette.com/daydream", format=Format.html
+    url="https://pioneervalleygazette.com/daydream", format=content_formats.HTML
 )
 print("HTML data:", data)
