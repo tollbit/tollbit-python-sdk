@@ -27,7 +27,7 @@ data = client.get_sanctioned_content(
     max_price_micros=11000000,
     currency=currencies.USD,
     license_type=licences.ON_DEMAND_LICENSE,
-    format=content_formats.html,
+    format=content_formats.HTML,
 )
 print("HTML data:", data)
 

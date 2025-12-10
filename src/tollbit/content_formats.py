@@ -13,3 +13,6 @@ class Format(Enum):
     markdown = FormatData(
         header_string="text/markdown",
     )
+
+MARKDOWN = Format.markdown
+HTML = Format.html
