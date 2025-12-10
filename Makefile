@@ -17,7 +17,9 @@ VERSION      := $(shell poetry version -s)
 WHEEL        := $(shell ls -t dist/$(DIST_STEM)-$(VERSION)-*.whl 2>/dev/null | head -1)
 DRYRUN       ?= true
 
-MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+MAKEFILE_DIR  := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+EXAMPLES_DIR  := $(MAKEFILE_DIR)/examples
+EXAMPLE_FILES := $(shell find $(EXAMPLES_DIR) -type f -name '*.py' | sort)
 
 # --- paths & commands ---
 PY_SRC               := src/tollbit tests examples
@@ -96,6 +98,22 @@ ensure-reflex: ## Ensure reflex is installed in the Poetry venv
 	  echo "⚠️ reflex not found in Poetry venv. Run `brew install reflex`"; \
 	  exit 1; \
 	fi
+
+# --- examples ---
+
+.PHONY: examples
+examples: ## List and run all Python files in examples/ using poetry
+	@for f in $(EXAMPLE_FILES); do \
+		echo "=== 🚀 Running example: $$f ==="; \
+		tmpfile=$$(mktemp); \
+		if ! $(POETRY) run python "$$f" > "$$tmpfile" 2>&1; then \
+			echo "❌ Example $$f failed. Output:"; \
+            cat "$$tmpfile"; \
+        else \
+            echo "✅ Example $$f passed."; \
+        fi; \
+        rm -f "$$tmpfile"; \
+	done
 
 # --- build steps ---
 
