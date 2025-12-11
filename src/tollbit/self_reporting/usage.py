@@ -1,7 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
-from tollbit.licences import LicensePermission, LicenceType
+from tollbit.licences.types import LicenceType
+from tollbit.licences.permissions import LicensePermission
 
 
 def usage(

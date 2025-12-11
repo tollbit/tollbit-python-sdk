@@ -14,9 +14,13 @@ user_agent = os.getenv("TOLLBIT_USER_AGENT", "tollbit-python-sdk-example/0.1.0")
 # Get licenses for use in the transaction
 client = use_content.create_client(secret_key=api_key, user_agent=user_agent)
 
+
+# In this example we use get_rate to fetch the license information for two different URLs, specifically
+# the ids of the licenses that we will be reporting usage against. In a real-world scenario, you would
+# likely store these license ids somewhere after an initial retrieval, rather than fetching them
+# every time you want to report usage.
 daydream_rate_info = client.get_rate(url="https://pioneervalleygazette.com/daydream")
 daydream_license = daydream_rate_info[0].license
-
 sunset_rate_info = client.get_rate(url="https://pioneervalleygazette.com/sunset")
 sunset_license = sunset_rate_info[0].license
 
@@ -25,32 +29,32 @@ print("Sunset rate info:", sunset_rate_info[0].model_dump())
 
 reporting_client = self_reporting.create_client(secret_key=api_key, user_agent=user_agent)
 
+# When reporting usage, we need to create a transaction block that contains one or more usages. Transaction
+# blocks are idenmpotent, meaning that if the same transaction block is reported multiple times, it will only be
+# counted once for billing purposes. This is useful in case of network errors or other issues that might cause
+# a report to be sent multiple times.
 usages = []
 usages.append(
     self_reporting.usage(
         url="https://pioneervalleygazette.com/daydream",
         times_used=1,
-        license_permissions=[licences.LICENSE_PERMISSION_PARTIAL_USE],
+        license_permissions=[licences.permissions.LICENSE_PERMISSION_PARTIAL_USE],
         license_cuid=daydream_license.cuid,
-        license_type=licences.ON_DEMAND_LICENSE,
+        license_type=licences.types.ON_DEMAND_LICENSE,
     )
 )
-
 usages.append(
     self_reporting.usage(
         url="https://pioneervalleygazette.com/sunset",
         times_used=2,
-        license_permissions=[licences.LICENSE_PERMISSION_PARTIAL_USE],
+        license_permissions=[licences.permissions.LICENSE_PERMISSION_PARTIAL_USE],
         license_cuid=sunset_license.cuid,
-        license_type=licences.ON_DEMAND_FULL_USE_LICENSE,
+        license_type=licences.types.ON_DEMAND_FULL_USE_LICENSE,
         metadata={"another_key": "another_value"},
     )
 )
+transaction_block = reporting_client.create_transaction_block(usages)
 
-# We create a transaction here that is idempotent, so that every
-# reporting request can be safely multiple times.
-tb = reporting_client.create_transaction_block(usages)
-result = reporting_client.report(tb)
-
-
+# Now we can report the transaction block to Tollbit
+result = reporting_client.report(transaction_block)
 print("Transaction result:", [r.model_dump() for r in result])

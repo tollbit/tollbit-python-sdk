@@ -29,9 +29,9 @@ def test_self_report_usage():
     u = usage(
         url="https://example.com/resource",
         times_used=5,
-        license_permissions=[licences.LICENSE_PERMISSION_FULL_USE],
+        license_permissions=[licences.permissions.LICENSE_PERMISSION_FULL_USE],
         license_cuid="cuid_123",
-        license_type=licences.ON_DEMAND_LICENSE,
+        license_type=licences.types.ON_DEMAND_LICENSE,
     )
     tb = client.create_transaction_block([u])
     assert tb.idempotency_id is not None
