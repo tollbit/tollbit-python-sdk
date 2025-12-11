@@ -50,7 +50,7 @@ class SelfReportingClient:
                     url=usage.url,
                     times_used=usage.times_used,
                     license_permissions=perms,
-                    license_cuid=usage.license_cuid,
+                    license_cuid=usage.license_id,
                     license_type=usage.license_type.value,
                     metadata=usage.metadata,
                 )

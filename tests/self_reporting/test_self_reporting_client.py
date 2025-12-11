@@ -30,7 +30,7 @@ def test_self_report_usage():
         url="https://example.com/resource",
         times_used=5,
         license_permissions=[licences.permissions.LICENSE_PERMISSION_FULL_USE],
-        license_cuid="cuid_123",
+        license_id="cuid_123",
         license_type=licences.types.ON_DEMAND_LICENSE,
     )
     tb = client.create_transaction_block([u])

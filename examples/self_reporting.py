@@ -39,7 +39,7 @@ usages.append(
         url="https://pioneervalleygazette.com/daydream",
         times_used=1,
         license_permissions=[licences.permissions.LICENSE_PERMISSION_PARTIAL_USE],
-        license_cuid=daydream_license.cuid,
+        license_id=daydream_license.cuid,
         license_type=licences.types.ON_DEMAND_LICENSE,
     )
 )
@@ -48,7 +48,7 @@ usages.append(
         url="https://pioneervalleygazette.com/sunset",
         times_used=2,
         license_permissions=[licences.permissions.LICENSE_PERMISSION_PARTIAL_USE],
-        license_cuid=sunset_license.cuid,
+        license_id=sunset_license.cuid,
         license_type=licences.types.ON_DEMAND_FULL_USE_LICENSE,
         metadata={"another_key": "another_value"},
     )

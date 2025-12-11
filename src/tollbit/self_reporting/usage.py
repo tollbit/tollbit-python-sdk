@@ -9,7 +9,7 @@ def usage(
     url: str,
     times_used: int,
     license_permissions: list[LicensePermission],
-    license_cuid: str,
+    license_id: str,
     license_type: LicenceType,
     metadata: dict[str, Any] | None = None,
 ) -> Usage:
@@ -17,7 +17,7 @@ def usage(
         url=url,
         times_used=times_used,
         license_permissions=license_permissions,
-        license_cuid=license_cuid,
+        license_id=license_id,
         license_type=license_type,
         metadata=metadata,
     )
@@ -28,6 +28,6 @@ class Usage:
     url: str
     times_used: int
     license_permissions: list[LicensePermission]
-    license_cuid: str
+    license_id: str
     license_type: LicenceType
     metadata: dict[str, Any] | None = None
