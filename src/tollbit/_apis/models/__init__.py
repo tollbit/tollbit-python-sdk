@@ -14,3 +14,10 @@ from ._hand_rolled.get_content_catalog import (
     DeveloperContentCatalogResponse,
     DeveloperContentCatalogPage,
 )
+
+from ._hand_rolled.self_report_usage import (
+    DeveloperSelfReportRequest,
+    DeveloperTransactionResponse,
+    SelfReportUsage,
+    SelfReportLicensePermission,
+)
