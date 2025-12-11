@@ -1,5 +1,4 @@
 import requests
-import os
 from pydantic import BaseModel, TypeAdapter
 from typing import Type, TypeVar, Any
 from tollbit._environment import Environment
@@ -80,10 +79,16 @@ class ContentAPI:
 
         return []  # Shouldn't get here
 
-    def get_content(self, token: TollbitToken, content_url: str, format: Format) -> GetContentResponse:
+    def get_content(
+        self, token: TollbitToken, content_url: str, format: Format
+    ) -> GetContentResponse:
         # Implementation for fetching content using the provided token
         try:
-            headers = {"User-Agent": self.user_agent, "Tollbit-Token": str(token), "Tollbit-Accept-Content": format.value.header_string}
+            headers = {
+                "User-Agent": self.user_agent,
+                "Tollbit-Token": str(token),
+                "Tollbit-Accept-Content": format.value.header_string,
+            }
             url = f"{self._base_url}{_GET_CONTENT_PATH.replace('<PATH>', content_url)}"
             logger.debug(
                 "Requesting content...",

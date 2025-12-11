@@ -149,7 +149,9 @@ def test_get_content_success(patch_requests_get, test_env):
     }
     patch_requests_get(MockResponse(json_obj=fake_content))
     client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    resp = client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content", Format.html)
+    resp = client.get_content(
+        TollbitToken("dummy-token"), "example.com/path/to/content", Format.html
+    )
     assert isinstance(resp, GetContentResponse)
 
 
