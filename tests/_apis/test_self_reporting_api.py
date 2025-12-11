@@ -7,10 +7,13 @@ from tollbit._apis.errors import (
     UnknownError,
     ApiError,
 )
-from tollbit._apis.models import DeveloperSelfReportRequest, SelfReportUsage, DeveloperTransactionResponse
+from tollbit._apis.models import (
+    DeveloperSelfReportRequest,
+    SelfReportUsage,
+    DeveloperTransactionResponse,
+)
 import requests
 from unittest import mock
-
 
 
 # --- Mocks and Fixtures ---
@@ -46,6 +49,7 @@ def patch_requests_get(monkeypatch):
         return mock_get
 
     return _patch_requests_get
+
 
 @pytest.fixture()
 def patch_requests_post(monkeypatch):
@@ -95,7 +99,8 @@ def test_report_success(patch_requests_post, test_env):
                 license_cuid="license-cuid-123",
                 license_type="standard",
             )
-        ],)
+        ],
+    )
 
     resp = client.post_self_report(req)
 
@@ -107,6 +112,7 @@ def test_report_success(patch_requests_post, test_env):
 
     assert isinstance(resp, list)
     assert isinstance(resp[0], DeveloperTransactionResponse)
+
 
 def test_report_bad_request(patch_requests_post, test_env):
     patch_requests_post(MockResponse(body_text="Bad Request", status_code=400))
@@ -121,10 +127,12 @@ def test_report_bad_request(patch_requests_post, test_env):
                 license_cuid="license-cuid-123",
                 license_type="standard",
             )
-        ],)
+        ],
+    )
 
     with pytest.raises(BadRequestError):
         client.post_self_report(req)
+
 
 def test_report_server_error(patch_requests_post, test_env):
     patch_requests_post(MockResponse(body_text="Server Error", status_code=500))
@@ -139,10 +147,12 @@ def test_report_server_error(patch_requests_post, test_env):
                 license_cuid="license-cuid-123",
                 license_type="standard",
             )
-        ],)
+        ],
+    )
 
     with pytest.raises(ServerError):
         client.post_self_report(req)
+
 
 def test_report_unknown_error(patch_requests_post, test_env):
     patch_requests_post(MockResponse(body_text="Teapots on the attack", status_code=418))
@@ -157,10 +167,12 @@ def test_report_unknown_error(patch_requests_post, test_env):
                 license_cuid="license-cuid-123",
                 license_type="standard",
             )
-        ],)
+        ],
+    )
 
     with pytest.raises(UnknownError):
         client.post_self_report(req)
+
 
 def test_report_unreachable(mock_server_down, test_env):
     client = SelfReportingAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
@@ -174,7 +186,8 @@ def test_report_unreachable(mock_server_down, test_env):
                 license_cuid="license-cuid-123",
                 license_type="standard",
             )
-        ],)
+        ],
+    )
 
     with pytest.raises(ServerError):
         client.post_self_report(req)
