@@ -160,7 +160,7 @@ data = client.get_sanctioned_content(
     url="https://pioneervalleygazette.com/daydream",
     max_price_micros=11000000,
     currency=currencies.USD,
-    license_type=licences.ON_DEMAND_LICENSE
+    license_type=licences.types.ON_DEMAND_LICENSE
 )
 
 print(data.content.main)
@@ -168,7 +168,36 @@ print(data.content.main)
 
 For more examples please see [examples/get_content.py](examples/get_content.py).
 
+## Self reporting usage
 
+```python
+from tollbit import self_reporting
+from tollbit import licences
+from tollbit import use_content
+
+reporting_client = self_reporting.create_client(
+    secret_key="YOUR API KEY", 
+    user_agent="YOUR USER AGENT"
+)
+
+
+# Create an array of your usages
+usages = [self_reporting.usage(
+        url="https://pioneervalleygazette.com/daydream",
+        times_used=1,
+        license_permissions=[licences.permissions.LICENSE_PERMISSION_PARTIAL_USE],
+        license_id="licences-id-123",
+        license_type=licences.types.ON_DEMAND_LICENSE,
+    )]
+
+# Create an idempotent transaction block
+transaction_block = reporting_client.create_transaction_block(usages)
+
+# Report usages
+result = reporting_client.report(transaction_block)
+```
+
+For more examples please see [examples/self_reporting.py](examples/self_reporting.py)
 
 ## Issues
 We have disabled issues for the time being. Please reach out directly to tollbit
