@@ -16,6 +16,7 @@ class ContentRate(BaseModel):
 
 
 class RateLicenseResponse(BaseModel):
+    cuid: str | None
     licenseType: str
     licensePath: str
     permissions: List[RateLicensePermission]

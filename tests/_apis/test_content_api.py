@@ -68,6 +68,7 @@ def test_get_rate_success(patch_requests_get, test_env):
             "currency": "USD",
         },
         "license": {
+            "cuid": "license-cuid-123",
             "licenseType": "ON_DEMAND",
             "licensePath": "/licenses/standard",
             "permissions": [],
