@@ -15,7 +15,7 @@ ensure_git_tag() {
 
   actual_tag=$(git describe --tags --exact-match 2>/dev/null || true)
   if [[ "$actual_tag" != "${expected_tag}" ]]; then
-    echo "Error: Current git tag is '$actual_tag', expected 'v$expected_tag'."
+    echo "Error: Current git tag is '$actual_tag', expected '$expected_tag'."
     exit 1
   fi
 }
