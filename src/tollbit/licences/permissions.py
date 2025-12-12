@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class LicensePermission(str, Enum):
     LICENSE_PERMISSION_PARTIAL_USE = "PARTIAL_USE"
     LICENSE_PERMISSION_FULL_USE = "FULL_USE"
