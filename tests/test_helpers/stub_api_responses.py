@@ -13,6 +13,7 @@ def stub_rate_response():
     return ContentRate(
         price=RatePrice(priceMicros=0, currency="USD"),
         license=RateLicenseResponse(
+            cuid="license-cuid-123",
             licenseType="STANDARD",
             licensePath="/licenses/standard",
             permissions=[],

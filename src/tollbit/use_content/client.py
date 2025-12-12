@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 from tollbit._apis.models import CreateSubdomainAccessTokenRequest, GetContentResponse
 from tollbit.content_formats import Format
 from tollbit.currencies import Currency
-from tollbit.licences import LicenceType
+from tollbit.licences.types import LicenceType
 from pydantic import AnyUrl
 from tollbit._environment import env_from_vars
 

@@ -18,7 +18,7 @@ data = client.get_sanctioned_content(
     url="https://pioneervalleygazette.com/daydream",
     max_price_micros=11000000,
     currency=currencies.USD,
-    license_type=licences.ON_DEMAND_LICENSE,
+    license_type=licences.types.ON_DEMAND_LICENSE,
 )
 print("Markdown data:", data)
 
@@ -26,7 +26,7 @@ data = client.get_sanctioned_content(
     url="https://pioneervalleygazette.com/daydream",
     max_price_micros=11000000,
     currency=currencies.USD,
-    license_type=licences.ON_DEMAND_LICENSE,
+    license_type=licences.types.ON_DEMAND_LICENSE,
     format=content_formats.HTML,
 )
 print("HTML data:", data)

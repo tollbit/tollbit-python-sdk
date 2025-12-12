@@ -55,7 +55,7 @@ def test_get_sanctioned_content():
         url=fake_content_url,
         max_price_micros=1000000,
         currency=currencies.USD,
-        license_type=licences.ON_DEMAND_LICENSE,
+        license_type=licences.types.ON_DEMAND_LICENSE,
     )
 
     # Assert
@@ -96,7 +96,7 @@ def test_get_sanctioned_content_with_html():
         url=fake_content_url,
         max_price_micros=1000000,
         currency=currencies.USD,
-        license_type=licences.ON_DEMAND_LICENSE,
+        license_type=licences.types.ON_DEMAND_LICENSE,
         format=Format.html,
     )
 

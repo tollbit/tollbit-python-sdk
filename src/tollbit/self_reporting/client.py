@@ -1,0 +1,70 @@
+from __future__ import annotations
+from tollbit._apis.self_reporting_api import SelfReportingAPI
+from tollbit._apis.models import (
+    DeveloperSelfReportRequest,
+    DeveloperTransactionResponse,
+    SelfReportUsage,
+    SelfReportLicensePermission,
+)
+from tollbit._environment import env_from_vars
+from dataclasses import dataclass
+import uuid
+from .usage import Usage
+
+
+def create_client(
+    secret_key: str,
+    user_agent: str,
+) -> SelfReportingClient:
+    env = env_from_vars()
+
+    return SelfReportingClient(
+        self_reporting_api=SelfReportingAPI(
+            api_key=secret_key,
+            user_agent=user_agent,
+            env=env,
+        ),
+    )
+
+
+class SelfReportingClient:
+    self_reporting_api: SelfReportingAPI
+
+    def __init__(
+        self,
+        self_reporting_api: SelfReportingAPI,
+    ):
+        self.self_reporting_api = self_reporting_api
+
+    def create_transaction_block(self, usages: list[Usage]) -> TransactionBlock:
+        return TransactionBlock(str(uuid.uuid4()), usages)
+
+    def report(self, transaction_block: TransactionBlock) -> list[DeveloperTransactionResponse]:
+        api_usages = []
+
+        for usage in transaction_block.usages:
+            perms = [SelfReportLicensePermission(name=lp.value) for lp in usage.license_permissions]
+
+            api_usages.append(
+                SelfReportUsage(
+                    url=usage.url,
+                    times_used=usage.times_used,
+                    license_permissions=perms,
+                    license_cuid=usage.license_id,
+                    license_type=usage.license_type.value,
+                    metadata=usage.metadata,
+                )
+            )
+
+        request = DeveloperSelfReportRequest(
+            idempotency_id=transaction_block.idempotency_id,
+            usage=api_usages,
+        )
+
+        return self.self_reporting_api.post_self_report(request)
+
+
+@dataclass(frozen=True)
+class TransactionBlock:
+    idempotency_id: str
+    usages: list[Usage]
