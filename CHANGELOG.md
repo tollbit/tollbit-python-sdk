@@ -1,11 +1,29 @@
 # Changelog
 
+## 0.3.0 - 2025-12-12
+
+### Added
+
+- Added self reporting
+
+### Changed
+
+- Update crawl content to support multiple formats
+- Updated get content requests to use content format header
+- Made format constant names more consistent
+
+### Fixed
+
+- Fix rates calls for V1 API
+
 ## 0.2.1 - 2025-12-01
 
 ### Added
+
 - Added type hints
 
 ### Changed
+
 - Updated get content apis to use V2 routes
 
 ## 0.2.0 - 2025-11-18
