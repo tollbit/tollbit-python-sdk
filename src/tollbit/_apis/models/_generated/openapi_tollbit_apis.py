@@ -99,7 +99,6 @@ class RateLicenseResponse(BaseModel):
     licenseType: str
     licensePath: str
     permissions: List[RateLicensePermission]
-    validUntil: datetime
 
 
 class RatePrice(BaseModel):

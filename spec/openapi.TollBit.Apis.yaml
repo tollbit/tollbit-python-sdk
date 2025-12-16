@@ -629,7 +629,6 @@ components:
         - licenseType
         - licensePath
         - permissions
-        - validUntil
       properties:
         id:
           type: string
@@ -641,9 +640,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RateLicensePermission'
-        validUntil:
-          type: string
-          format: date-time
     RatePrice:
       type: object
       required:

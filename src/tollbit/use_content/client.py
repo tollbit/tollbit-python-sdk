@@ -1,11 +1,14 @@
 from __future__ import annotations
-from .types import ContentRate
 from tollbit.tokens import TollbitToken
-from typing import Any
 from tollbit._apis.content_api import ContentAPI
 from tollbit._apis.token_api import TokenAPI
+from tollbit._apis.content_retrieval_api import ContentRetrievalAPI
 from urllib.parse import urlparse
-from tollbit._apis.models import CreateSubdomainAccessTokenRequest, GetContentResponse
+from tollbit._apis.models import (
+    CreateSubdomainAccessTokenRequest,
+    GetContentResponse,
+    DeveloperRateResponse,
+)
 from tollbit.content_formats import Format
 from tollbit.currencies import Currency
 from tollbit.licences.types import LicenceType
@@ -30,22 +33,29 @@ def create_client(
             user_agent=user_agent,
             env=env,
         ),
+        content_retrieval_api=ContentRetrievalAPI(
+            user_agent=user_agent,
+            env=env,
+        ),
     )
 
 
 class UseContentClient:
     content_api: ContentAPI
     token_api: TokenAPI
+    content_retrieval_api: ContentRetrievalAPI
 
     def __init__(
         self,
         content_api: ContentAPI,
         token_api: TokenAPI,
+        content_retrieval_api: ContentRetrievalAPI,
     ):
         self.content_api = content_api
         self.token_api = token_api
+        self.content_retrieval_api = content_retrieval_api
 
-    def get_rate(self, url: str) -> list[ContentRate]:
+    def get_rate(self, url: str) -> list[DeveloperRateResponse]:
         parsed_url = urlparse(url)
         return self.content_api.get_rate(f"{parsed_url.netloc}{parsed_url.path}")
 
@@ -73,7 +83,7 @@ class UseContentClient:
         token_resp = self.token_api.get_content_token(req)
         token: TollbitToken = TollbitToken(token_resp.token)
 
-        response = self.content_api.get_content(
+        response = self.content_retrieval_api.get_content(
             content_url=f"{parsed_url.netloc}{parsed_url.path}", token=token, format=format
         )
 

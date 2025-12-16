@@ -2,6 +2,7 @@ import pytest
 from tollbit.use_content.client import UseContentClient
 from tollbit._apis.content_api import ContentAPI
 from tollbit._apis.token_api import TokenAPI
+from tollbit._apis.content_retrieval_api import ContentRetrievalAPI
 from tollbit._apis.models import ContentRate
 from unittest.mock import MagicMock
 from test_helpers.stub_api_responses import stub_rate_response, stub_content_response
@@ -29,7 +30,9 @@ def test_get_rate_calls_variants(url):
 
     mock_token_api = MagicMock(spec=TokenAPI)
 
-    client = UseContentClient(content_api=mock_content_api, token_api=mock_token_api)
+    client = UseContentClient(
+        content_api=mock_content_api, token_api=mock_token_api, content_retrieval_api=None
+    )
 
     result = client.get_rate(url)
     mock_content_api.get_rate.assert_called_with("example.com/bar")
@@ -41,8 +44,8 @@ def test_get_sanctioned_content():
     fake_content_url = "example.com/bar"
     fake_response = stub_content_response()
 
-    mock_content_api = MagicMock(spec=ContentAPI)
-    mock_content_api.get_content.return_value = fake_response
+    mock_content_retrieval_api = MagicMock(spec=ContentRetrievalAPI)
+    mock_content_retrieval_api.get_content.return_value = fake_response
 
     mock_token_api = MagicMock(spec=TokenAPI)
     mock_token_api.user_agent = "test-agent"
@@ -50,7 +53,9 @@ def test_get_sanctioned_content():
         token=fake_token_str,
     )
     # Call the method
-    client = UseContentClient(content_api=mock_content_api, token_api=mock_token_api)
+    client = UseContentClient(
+        content_api=None, token_api=mock_token_api, content_retrieval_api=mock_content_retrieval_api
+    )
     result = client.get_sanctioned_content(
         url=fake_content_url,
         max_price_micros=1000000,
@@ -70,7 +75,7 @@ def test_get_sanctioned_content():
         )
     )
 
-    mock_content_api.get_content.assert_called_once_with(
+    mock_content_retrieval_api.get_content.assert_called_once_with(
         content_url=fake_content_url, token=TollbitToken(fake_token_str), format=Format.markdown
     )
     assert result == fake_response
@@ -81,8 +86,8 @@ def test_get_sanctioned_content_with_html():
     fake_content_url = "example.com/bar"
     fake_response = stub_content_response()
 
-    mock_content_api = MagicMock(spec=ContentAPI)
-    mock_content_api.get_content.return_value = fake_response
+    mock_content_retrieval_api = MagicMock(spec=ContentRetrievalAPI)
+    mock_content_retrieval_api.get_content.return_value = fake_response
 
     mock_token_api = MagicMock(spec=TokenAPI)
     mock_token_api.user_agent = "test-agent"
@@ -91,7 +96,9 @@ def test_get_sanctioned_content_with_html():
         format="markdown",
     )
     # Call the method
-    client = UseContentClient(content_api=mock_content_api, token_api=mock_token_api)
+    client = UseContentClient(
+        content_api=None, token_api=mock_token_api, content_retrieval_api=mock_content_retrieval_api
+    )
     result = client.get_sanctioned_content(
         url=fake_content_url,
         max_price_micros=1000000,
@@ -111,7 +118,7 @@ def test_get_sanctioned_content_with_html():
             licenseCuid="",
         )
     )
-    mock_content_api.get_content.assert_called_once_with(
+    mock_content_retrieval_api.get_content.assert_called_once_with(
         content_url=fake_content_url, token=TollbitToken(fake_token_str), format=Format.html
     )
 

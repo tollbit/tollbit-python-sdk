@@ -14,7 +14,7 @@ def test_api_error_parse_with_problem_json():
         "detail": "You forgot to do the thing",
         "instance": "/path/to/resource"
     }"""
-    response.headers["Content-Type"] = "application/json"
+    response.headers["Content-Type"] = "application/problem+json"
 
     error = ApiError.from_response(response)
     assert error.status_code == 400

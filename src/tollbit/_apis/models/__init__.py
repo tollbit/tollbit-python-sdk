@@ -7,6 +7,7 @@ from ._generated.openapi_tollbit_apis import (
     Error,
     ProblemJSON,
     GetContentResponse,
+    DeveloperRateResponse,
 )
 from ._hand_rolled.old_subdomain_models import ContentRate, RatePrice, RateLicenseResponse
 

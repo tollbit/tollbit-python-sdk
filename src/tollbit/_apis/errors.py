@@ -23,7 +23,7 @@ class ApiError(RuntimeError):
     @classmethod
     def from_response(cls, response: Response) -> ApiError:
         content_type = response.headers.get("Content-Type", "")
-        if "application/json" in content_type:
+        if "application/problem+json" in content_type:
             try:
                 problem_json = ProblemJSON.model_validate(response.json())
                 return cls(
