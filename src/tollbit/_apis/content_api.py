@@ -3,20 +3,17 @@ from pydantic import TypeAdapter
 from tollbit._environment import Environment
 from tollbit._apis.models import (
     DeveloperRateResponse,
-    DeveloperContentCatalogResponse,
+    CatalogResponse,
 )
 from tollbit._apis.errors import (
     ApiError,
-    UnauthorizedError,
-    BadRequestError,
     ServerError,
-    UnknownError,
 )
 
 from tollbit._logging import get_sdk_logger
 
 _GET_RATE_PATH = "/dev/v2/rate/<PATH>"
-_GET_CATALOG_PATH = "/dev/v1/content/<DOMAIN>/catalog/list"
+_GET_CATALOG_PATH = "/dev/v2/content/<DOMAIN>/catalog/list"
 
 # Configure logging
 logger = get_sdk_logger(__name__)
@@ -65,7 +62,7 @@ class ContentAPI:
         content_domain: str,
         page_size: int = 100,
         page_token: str | None = None,
-    ) -> list[DeveloperContentCatalogResponse]:
+    ) -> CatalogResponse:
         try:
             headers = {"User-Agent": self.user_agent, "TollbitKey": self.api_key}
             url = f"{self._base_url}{_GET_CATALOG_PATH.replace('<DOMAIN>', content_domain)}"
@@ -98,25 +95,10 @@ class ContentAPI:
             logger.error(f"Error occurred while fetching content catalog: {e}")
             raise ServerError("Unable to connect to the Tollbit server") from e
 
-        match response.status_code:
-            case 200:
-                resp: list[DeveloperContentCatalogResponse] = TypeAdapter(
-                    list[DeveloperContentCatalogResponse]
-                ).validate_python(response.json())
-                return resp
-            case 401:
-                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-                raise UnauthorizedError("Unauthorized: Invalid API key")
-            case 400:
-                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-                raise BadRequestError(
-                    "Bad Request: Check your request; most likely the content domain is invalid or unknown."
-                )
-            case code if 500 <= code <= 599:
-                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-                raise ServerError(f"An error occurred on Tollbit's servers: {response.status_code}")
-            case _:
-                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-                raise UnknownError(f"An unknown error occurred: {response.status_code}")
+        if response.status_code != 200:
+            err = ApiError.from_response(response)
+            logger.error(str(err))
+            raise err
 
-        return []  # Shouldn't get here
+        resp: CatalogResponse = TypeAdapter(CatalogResponse).validate_python(response.json())
+        return resp

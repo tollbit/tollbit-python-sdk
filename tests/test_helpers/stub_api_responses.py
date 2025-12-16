@@ -4,7 +4,7 @@ from tollbit._apis.models import (
     ContentRate,
     RatePrice,
     RateLicenseResponse,
-    DeveloperContentCatalogResponse,
+    CatalogResponse,
     GetContentResponse,
 )
 
@@ -75,10 +75,10 @@ def stub_crawl_response():
 
 
 def stub_catalog_response():
-    return DeveloperContentCatalogResponse.model_validate(
+    return CatalogResponse.model_validate(
         {
             "pageToken": None,
-            "contents": [
+            "pages": [
                 {
                     "propertyId": "property-123",
                     "pageUrl": "https://example.com/content-1",
