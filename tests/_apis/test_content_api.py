@@ -1,18 +1,13 @@
 import pytest
 from tollbit._apis.content_api import ContentAPI
 from tollbit._apis.errors import (
-    UnauthorizedError,
     BadRequestError,
     ServerError,
     UnknownError,
-    ApiError,
 )
 from tollbit._apis.models import ContentRate
-from tollbit.tokens import TollbitToken
 import requests
-from tollbit._apis.models import GetContentResponse
 from unittest import mock
-from tollbit.content_formats import Format
 
 
 # --- Mocks and Fixtures ---
@@ -115,117 +110,6 @@ def test_get_rate_unreachable(mock_server_down, test_env):
     with pytest.raises(ServerError):
         client.get_rate("example.com/path/to/content")
 
-
-# ======= Get Content Tests =======
-def test_get_content_success(patch_requests_get, test_env):
-    fake_content = {
-        "metadata": {
-            "title": "Sample Title",
-            "description": "Sample Description",
-            "imageUrl": "https://example.com/image.png",
-            "author": "Author Name",
-            "published": "2024-01-01T00:00:00Z",
-            "modified": "2024-01-02T00:00:00Z",
-        },
-        "content": {
-            "header": "<header>Header Content</header>",
-            "body": "<main>Main Content</main>",
-            "footer": "<footer>Footer Content</footer>",
-        },
-        "rate": {
-            "price": {
-                "priceMicros": 0,
-                "currency": "USD",
-            },
-            "license": {
-                "id": "license-cuid",
-                "licenseType": "STANDARD",
-                "licensePath": "/licenses/standard",
-                "permissions": [],
-                "validUntil": "2024-12-31T23:59:59Z",
-            },
-            "error": "",
-        },
-    }
-    patch_requests_get(MockResponse(json_obj=fake_content))
-    client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    resp = client.get_content(
-        TollbitToken("dummy-token"), "example.com/path/to/content", Format.html
-    )
-    assert isinstance(resp, GetContentResponse)
-
-
-# https://linear.app/tollbit/issue/TOL-1184/getcontent-v2-returns-empty-response-for-no-content
-@pytest.mark.skip(
-    reason="This currently returns an empty object instead of a 404. We need to discuss this for V2"
-)
-def test_get_content_no_content(patch_requests_get):
-    fake_response = {
-        "content": {"header": "", "body": "", "footer": ""},
-        "metadata": {
-            "title": None,
-            "description": None,
-            "imageUrl": None,
-            "author": None,
-            "published": None,
-            "modified": None,
-        },
-        "rate": {
-            "price": {"priceMicros": 7000, "currency": "USD"},
-            "license": {
-                "cuid": "r6y1oozkapcoyzfm6dgc7813",
-                "licenseType": "ON_DEMAND_LICENSE",
-                "licensePath": "http://dev-api.tollbit.com/license/b7vrnorhwjg1vgrrr93gijcx/ON_DEMAND_LICENSE_qii52lfti6b5s6b314hu9hpo",
-                "permissions": [{"name": "PARTIAL_USE"}],
-                "validUntil": "2024-12-13T00:00:21Z",
-            },
-        },
-    }
-
-    patch_requests_get(MockResponse(json_obj=fake_response))
-    client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", environment="local")
-
-    with pytest.raises(BadRequestError):
-        client.get_content(TollbitToken("dummy-token"), "nosuchurl.com/imaginary", Format.html)
-
-
-def test_get_content_problem_json_error(patch_requests_get, test_env):
-    fake_response = {
-        "detail": "Fail",
-        "instance": "/dev/v2/content/pioneervalleygazette.com/daydream",
-        "status": 500,
-        "title": "Internal Server Error",
-        "type": "about:blank",
-    }
-
-    patch_requests_get(MockResponse(json_obj=fake_response, status_code=500))
-    client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    with pytest.raises(ApiError) as exc_info:
-        client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content", Format.html)
-
-    error = exc_info.value
-    assert (
-        str(error)
-        == "API Error: (500) Internal Server Error - Fail (instance: /dev/v2/content/pioneervalleygazette.com/daydream)"
-    )
-
-
-def test_get_content_non_problem_json_error(patch_requests_get, test_env):
-    patch_requests_get(MockResponse(body_text="Teapots on the attack", status_code=418))
-    client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    with pytest.raises(ApiError) as exc_info:
-        client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content", Format.html)
-
-    error = exc_info.value
-    assert str(error) == "API Error: (418) Teapots on the attack"
-
-
-def test_get_content_unreachable(mock_server_down, test_env):
-    client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    with pytest.raises(ServerError):
-        client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content", Format.html)
-
-
 # ======= Get Content Catalog Tests =======
 def test_get_content_catalog_success(patch_requests_get, test_env):
     fake_catalog = {
@@ -304,7 +188,7 @@ def test_get_content_catalog_server_error(patch_requests_get, test_env):
         client.get_content_catalog("example.com", page_size=2)
 
 
-def test_get_content_unknown_error(patch_requests_get, test_env):
+def test_get_content_catalog_unknown_error(patch_requests_get, test_env):
     patch_requests_get(MockResponse(body_text="Teapots on the attack", status_code=418))
     client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
     with pytest.raises(UnknownError):
