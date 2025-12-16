@@ -8,8 +8,13 @@ from ._generated.openapi_tollbit_apis import (
     ProblemJSON,
     GetContentResponse,
     DeveloperRateResponse,
+<<<<<<< HEAD
     CatalogResponse,
     PropertyPage,
+=======
+    PagedSearchResultResponse,
+    SearchResult,
+>>>>>>> bb436cc ([TOL-1209] Add search api)
 )
 from ._hand_rolled.old_subdomain_models import ContentRate, RatePrice, RateLicenseResponse
 
