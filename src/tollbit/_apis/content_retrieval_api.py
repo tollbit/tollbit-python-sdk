@@ -62,10 +62,6 @@ class ContentRetrievalAPI:
             logger.error(str(err))
             raise err
 
-        return _parse_get_content_response(response.json())
-
-
-def _parse_get_content_response(data: Any) -> GetContentResponse:
-    logger.debug("Parsing get content response", extra={"data": data})
-
-    return TypeAdapter(GetContentResponse).validate_python(data)
+        data = response.json()
+        logger.debug("Parsing get content response", extra={"response": data})
+        return TypeAdapter(GetContentResponse).validate_python(data)    

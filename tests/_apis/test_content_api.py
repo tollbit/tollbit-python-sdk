@@ -4,34 +4,13 @@ from tollbit._apis.errors import (
     BadRequestError,
     ServerError,
     UnknownError,
+    ApiError,
 )
-from tollbit._apis.models import ContentRate
+from tollbit._apis.models import DeveloperRateResponse
 import requests
 from unittest import mock
+from test_helpers.mock_response import MockResponse
 
-
-# --- Mocks and Fixtures ---
-class MockResponse:
-    def __init__(self, json_obj=None, body_text=None, status_code=200):
-        self._json_obj = json_obj or []
-        self.body_text = body_text
-        self.status_code = status_code
-
-    def json(self):
-        return self._json_obj
-
-    @property
-    def text(self):
-        return self.body_text
-
-    @property
-    def headers(self):
-        text_type = "application/json" if self._json_obj is not None else "text/plain"
-        return {"Content-Type": text_type}
-
-    @property
-    def reason(self):
-        return self.body_text or "OK"
 
 
 # Patch requests.get for testing
@@ -63,11 +42,10 @@ def test_get_rate_success(patch_requests_get, test_env):
             "currency": "USD",
         },
         "license": {
-            "cuid": "license-cuid-123",
+            "id": "license-cuid-123",
             "licenseType": "ON_DEMAND",
             "licensePath": "/licenses/standard",
             "permissions": [],
-            "validUntil": "2024-12-31T23:59:59Z",
         },
         "error": "",
     }
@@ -76,33 +54,43 @@ def test_get_rate_success(patch_requests_get, test_env):
     resp = client.get_rate("example.com/path/to/content")
 
     requests.get.assert_called_with(
-        f"{test_env.developer_api_base_url}/dev/v1/rate/example.com/path/to/content",
+        f"{test_env.developer_api_base_url}/dev/v2/rate/example.com/path/to/content",
         headers={"TollbitKey": "test-secret-key", "User-Agent": "test-agent"},
     )
 
     assert isinstance(resp, list)
-    assert isinstance(resp[0], ContentRate)
+    assert isinstance(resp[0], DeveloperRateResponse)
 
 
-def test_get_rate_bad_request(patch_requests_get, test_env):
-    patch_requests_get(MockResponse(body_text="Bad Request", status_code=400))
+def test_get_rate_problem_json_error(patch_requests_get, test_env):
+    fake_response = {
+        "detail": "Fail",
+        "instance": "/dev/v2/content/pioneervalleygazette.com/daydream",
+        "status": 500,
+        "title": "Internal Server Error",
+        "type": "about:blank",
+    }
+
+    patch_requests_get(MockResponse(problem_json_obj=fake_response, status_code=500))
     client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    with pytest.raises(BadRequestError):
+    with pytest.raises(ApiError) as exc_info:
         client.get_rate("example.com/path/to/content")
 
+    error = exc_info.value
+    assert (
+        str(error)
+        == "API Error: (500) Internal Server Error - Fail (instance: /dev/v2/content/pioneervalleygazette.com/daydream)"
+    )
 
-def test_get_rate_server_error(patch_requests_get, test_env):
-    patch_requests_get(MockResponse(body_text="Server Error", status_code=500))
-    client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    with pytest.raises(ServerError):
-        client.get_rate("example.com/path/to/content")
 
-
-def test_get_rate_unknown_error(patch_requests_get, test_env):
+def test_get_rate_non_problem_json_error(patch_requests_get, test_env):
     patch_requests_get(MockResponse(body_text="Teapots on the attack", status_code=418))
     client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    with pytest.raises(UnknownError):
+    with pytest.raises(ApiError) as exc_info:
         client.get_rate("example.com/path/to/content")
+
+    error = exc_info.value
+    assert str(error) == "API Error: (418) Teapots on the attack"
 
 
 def test_get_rate_unreachable(mock_server_down, test_env):
