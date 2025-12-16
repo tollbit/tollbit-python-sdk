@@ -12,6 +12,7 @@ from unittest import mock
 from tollbit.content_formats import Format
 from test_helpers.mock_response import MockResponse
 
+
 # Patch requests.get for testing
 @pytest.fixture()
 def patch_requests_get(monkeypatch):

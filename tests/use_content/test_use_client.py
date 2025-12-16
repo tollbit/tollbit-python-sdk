@@ -30,7 +30,9 @@ def test_get_rate_calls_variants(url):
 
     mock_token_api = MagicMock(spec=TokenAPI)
 
-    client = UseContentClient(content_api=mock_content_api, token_api=mock_token_api, content_retrieval_api=None)
+    client = UseContentClient(
+        content_api=mock_content_api, token_api=mock_token_api, content_retrieval_api=None
+    )
 
     result = client.get_rate(url)
     mock_content_api.get_rate.assert_called_with("example.com/bar")
@@ -51,7 +53,9 @@ def test_get_sanctioned_content():
         token=fake_token_str,
     )
     # Call the method
-    client = UseContentClient(content_api=None, token_api=mock_token_api, content_retrieval_api=mock_content_retrieval_api)
+    client = UseContentClient(
+        content_api=None, token_api=mock_token_api, content_retrieval_api=mock_content_retrieval_api
+    )
     result = client.get_sanctioned_content(
         url=fake_content_url,
         max_price_micros=1000000,
@@ -92,7 +96,9 @@ def test_get_sanctioned_content_with_html():
         format="markdown",
     )
     # Call the method
-    client = UseContentClient(content_api=None, token_api=mock_token_api, content_retrieval_api=mock_content_retrieval_api)
+    client = UseContentClient(
+        content_api=None, token_api=mock_token_api, content_retrieval_api=mock_content_retrieval_api
+    )
     result = client.get_sanctioned_content(
         url=fake_content_url,
         max_price_micros=1000000,

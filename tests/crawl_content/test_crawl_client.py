@@ -22,7 +22,9 @@ def test_get_content_catalog(url):
     mock_content_api = MagicMock(spec=ContentAPI)
     mock_content_api.get_content_catalog.return_value = fake_catalog
 
-    client = CrawlContentClient(content_api=mock_content_api, token_api=None, content_retrieval_api=None)
+    client = CrawlContentClient(
+        content_api=mock_content_api, token_api=None, content_retrieval_api=None
+    )
 
     result = client.list_content_catalog(url)
     mock_content_api.get_content_catalog.assert_called_with(
@@ -35,7 +37,9 @@ def test_get_content_catalog_no_results():
     mock_content_api = MagicMock(spec=ContentAPI)
     mock_content_api.get_content_catalog.return_value = []
 
-    client = CrawlContentClient(content_api=mock_content_api, token_api=None, content_retrieval_api=None)
+    client = CrawlContentClient(
+        content_api=mock_content_api, token_api=None, content_retrieval_api=None
+    )
 
     result = client.list_content_catalog("https://nonexistent.com")
     assert result is None
@@ -55,7 +59,9 @@ def test_crawl_content():
         token=fake_token_str,
     )
     # Call the method
-    client = CrawlContentClient(content_api=None, token_api=mock_token_api, content_retrieval_api=mock_content_retrieval_api)
+    client = CrawlContentClient(
+        content_api=None, token_api=mock_token_api, content_retrieval_api=mock_content_retrieval_api
+    )
     result = client.crawl_content(
         url=fake_content_url,
     )

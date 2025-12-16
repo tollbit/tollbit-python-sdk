@@ -29,7 +29,6 @@ class ContentRetrievalAPI:
         self.user_agent = user_agent
         self._base_url = env.developer_api_base_url
 
-
     def get_content(
         self, token: TollbitToken, content_url: str, format: Format
     ) -> GetContentResponse:
@@ -64,4 +63,4 @@ class ContentRetrievalAPI:
 
         data = response.json()
         logger.debug("Parsing get content response", extra={"response": data})
-        return TypeAdapter(GetContentResponse).validate_python(data)    
+        return TypeAdapter(GetContentResponse).validate_python(data)

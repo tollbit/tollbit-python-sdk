@@ -12,7 +12,6 @@ from unittest import mock
 from test_helpers.mock_response import MockResponse
 
 
-
 # Patch requests.get for testing
 @pytest.fixture()
 def patch_requests_get(monkeypatch):
@@ -97,6 +96,7 @@ def test_get_rate_unreachable(mock_server_down, test_env):
     client = ContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
     with pytest.raises(ServerError):
         client.get_rate("example.com/path/to/content")
+
 
 # ======= Get Content Catalog Tests =======
 def test_get_content_catalog_success(patch_requests_get, test_env):

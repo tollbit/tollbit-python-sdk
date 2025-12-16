@@ -58,10 +58,10 @@ class ContentAPI:
             err = ApiError.from_response(response)
             logger.error(str(err))
             raise err
-        
-        resp: list[DeveloperRateResponse] = TypeAdapter(list[DeveloperRateResponse]).validate_python(
-            response.json()
-        )
+
+        resp: list[DeveloperRateResponse] = TypeAdapter(
+            list[DeveloperRateResponse]
+        ).validate_python(response.json())
         return resp
 
     def get_content_catalog(

@@ -22,7 +22,6 @@ class MockResponse:
         else:
             return {"Content-Type": "text/plain"}
 
-
     @property
     def reason(self):
         return self.body_text or "OK"
