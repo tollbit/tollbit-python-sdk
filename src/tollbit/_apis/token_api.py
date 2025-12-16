@@ -1,16 +1,12 @@
 import requests
-import os
 from pydantic import BaseModel, TypeAdapter
 from typing import Type, TypeVar, Any
 from tollbit._environment import Environment
-import logging
 from tollbit._apis.models import (
     CreateSubdomainAccessTokenRequest,
     CreateSubdomainAccessTokenResponse,
     CreateCrawlAccessTokenRequest,
     CreateCrawlAccessTokenResponse,
-    Format,
-    Error,
 )
 from tollbit._apis.errors import (
     UnauthorizedError,

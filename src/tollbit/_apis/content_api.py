@@ -1,8 +1,6 @@
 import requests
-from pydantic import BaseModel, TypeAdapter
-from typing import Type, TypeVar, Any
+from pydantic import TypeAdapter
 from tollbit._environment import Environment
-from tollbit.content_formats import Format
 from tollbit._apis.models import (
     DeveloperRateResponse,
     DeveloperContentCatalogResponse,
@@ -22,8 +20,6 @@ _GET_CATALOG_PATH = "/dev/v1/content/<DOMAIN>/catalog/list"
 
 # Configure logging
 logger = get_sdk_logger(__name__)
-
-T = TypeVar("T", bound=BaseModel)
 
 
 class ContentAPI:
