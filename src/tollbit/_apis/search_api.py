@@ -5,10 +5,8 @@ from pydantic import TypeAdapter
 from tollbit._environment import Environment
 from tollbit._apis.models._generated.openapi_tollbit_apis import PagedSearchResultResponse
 from tollbit._apis.errors import (
-    UnauthorizedError,
-    BadRequestError,
     ServerError,
-    UnknownError,
+    ApiError,
 )
 from tollbit._logging import get_sdk_logger
 
@@ -70,23 +68,12 @@ class SearchAPI:
             logger.error(f"Error occurred while searching: {e}")
             raise ServerError("Unable to connect to the Tollbit server") from e
 
-        match response.status_code:
-            case 200:
-                resp: PagedSearchResultResponse = TypeAdapter(PagedSearchResultResponse).validate_python(
-                    response.json()
-                )
-                return resp
-            case 401:
-                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-                raise UnauthorizedError("Unauthorized: Invalid API key")
-            case 400:
-                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-                raise BadRequestError(
-                    "Bad Request: Check your request; most likely the search query is invalid."
-                )
-            case code if 500 <= code <= 599:
-                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-                raise ServerError(f"An error occurred on Tollbit's servers: {response.status_code}")
-            case _:
-                logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-                raise UnknownError(f"An unknown error occurred: {response.status_code}")
+        if response.status_code != 200:
+            err = ApiError.from_response(response)
+            logger.error(str(err))
+            raise err
+
+        resp: PagedSearchResultResponse = TypeAdapter(PagedSearchResultResponse).validate_python(
+            response.json()
+        )
+        return resp
