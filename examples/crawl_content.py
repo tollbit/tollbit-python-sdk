@@ -22,16 +22,16 @@ paged_results = client.list_content_catalog(
 )
 
 print("Content Catalog Results (first page):")
-print([paged.model_dump() for paged in paged_results.contents])
+print([paged.model_dump() for paged in paged_results.pages])
 
 second_page = client.list_content_catalog(
     url="https://pioneervalleygazette.com",
     page_size=5,
-    page_token=paged_results.next_page_token,
+    page_token=paged_results.pageToken,
 )
 
 print("Content Catalog Results (second page):")
-print([paged.model_dump() for paged in second_page.contents])
+print([paged.model_dump() for paged in second_page.pages])
 
 # In this example, we demonstrate how to use the Tollbit Python SDK
 # to crawl content for a specific URL.

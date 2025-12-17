@@ -6,7 +6,7 @@ from tollbit._apis.content_retrieval_api import ContentRetrievalAPI
 from urllib.parse import urlparse
 from tollbit._apis.models import (
     CreateCrawlAccessTokenRequest,
-    DeveloperContentCatalogResponse,
+    CatalogResponse,
     GetContentResponse,
 )
 from tollbit.content_formats import Format
@@ -62,7 +62,7 @@ class CrawlContentClient:
         url: str,
         page_size: int = 100,
         page_token: str | None = None,
-    ) -> DeveloperContentCatalogResponse | None:
+    ) -> CatalogResponse | None:
         parsed_url = parse_url_with_forgiveness(url)
         logger.debug(
             f"Fetching content catalog {parsed_url.netloc}",
@@ -74,10 +74,10 @@ class CrawlContentClient:
             page_token=page_token,
         )
 
-        if len(results) == 0:
+        if len(results.pages) == 0:
             return None
 
-        return results[0]
+        return results
 
     def crawl_content(
         self,
