@@ -146,3 +146,8 @@ class GetContentResponse(BaseModel):
     content: PageContent
     metadata: ContentMetadata
     rate: ContentRate | None = None
+
+
+class PagedSearchResultResponse(BaseModel):
+    nextToken: str
+    items: List[SearchResult]

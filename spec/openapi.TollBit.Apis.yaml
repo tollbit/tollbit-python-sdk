@@ -217,17 +217,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - nextToken
-                  - items
-                properties:
-                  nextToken:
-                    type: string
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/SearchResult'
+                $ref: '#/components/schemas/PagedSearchResultResponse'
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -573,6 +563,20 @@ components:
           type: string
         footer:
           type: string
+    PagedSearchResultResponse:
+      type: object
+      allOf:
+        - type: object
+          required:
+            - nextToken
+            - items
+          properties:
+            nextToken:
+              type: string
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/SearchResult'
     ProblemJSON:
       type: object
       required:
@@ -696,7 +700,7 @@ components:
     ApiKeyAuth_:
       type: apiKey
       in: header
-      name: TollbitToken
+      name: Tollbit-Token
 servers:
   - url: https://gateway.tollbit.com
     variables: {}

@@ -10,6 +10,8 @@ from ._generated.openapi_tollbit_apis import (
     DeveloperRateResponse,
     CatalogResponse,
     PropertyPage,
+    PagedSearchResultResponse,
+    SearchResult,
 )
 from ._hand_rolled.old_subdomain_models import ContentRate, RatePrice, RateLicenseResponse
 

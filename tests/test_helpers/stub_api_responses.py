@@ -7,6 +7,12 @@ from tollbit._apis.models import (
     CatalogResponse,
     GetContentResponse,
 )
+from tollbit._apis.models._generated.openapi_tollbit_apis import (
+    PagedSearchResultResponse,
+    SearchResult,
+    Publisher,
+    Availability,
+)
 
 
 def stub_rate_response():
@@ -86,4 +92,26 @@ def stub_catalog_response():
                 }
             ],
         }
+    )
+
+
+def stub_search_response():
+    return PagedSearchResultResponse(
+        nextToken="next-token-123",
+        items=[
+            SearchResult(
+                title="Sample Article",
+                url="https://example.com/article",
+                published_date="2024-01-01T00:00:00Z",
+                publisher=Publisher(domain="example.com", name="Example Publisher"),
+                availability=Availability(discoverable=True, ready_to_license=True),
+            ),
+            SearchResult(
+                title="Another Article",
+                url="https://example.com/another",
+                published_date="2024-01-02T00:00:00Z",
+                publisher=Publisher(domain="example.com", name="Example Publisher"),
+                availability=Availability(discoverable=True, ready_to_license=False),
+            ),
+        ],
     )
