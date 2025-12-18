@@ -17,5 +17,7 @@ from ._generated.openapi_tollbit_apis import (
     SelfReportUsageReceipt,
     SelfReportContentUsageRequest,
     SelfReportContentUsageResponse,
+    RateLicenseResponse,
+    RatePrice,
+    ContentRate,
 )
-from ._hand_rolled.old_subdomain_models import ContentRate, RatePrice, RateLicenseResponse
