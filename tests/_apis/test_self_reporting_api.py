@@ -8,36 +8,13 @@ from tollbit._apis.errors import (
     ApiError,
 )
 from tollbit._apis.models import (
-    DeveloperSelfReportRequest,
+    SelfReportContentUsageRequest,
     SelfReportUsage,
-    DeveloperTransactionResponse,
+    SelfReportContentUsageResponse,
 )
 import requests
 from unittest import mock
-
-
-# --- Mocks and Fixtures ---
-class MockResponse:
-    def __init__(self, json_obj=None, body_text=None, status_code=200):
-        self._json_obj = json_obj or []
-        self.body_text = body_text
-        self.status_code = status_code
-
-    def json(self):
-        return self._json_obj
-
-    @property
-    def text(self):
-        return self.body_text
-
-    @property
-    def headers(self):
-        text_type = "application/json" if self._json_obj is not None else "text/plain"
-        return {"Content-Type": text_type}
-
-    @property
-    def reason(self):
-        return self.body_text or "OK"
+from test_helpers.mock_response import MockResponse
 
 
 # Patch requests.get for testing
@@ -75,29 +52,33 @@ def mock_server_down(monkeypatch):
 def test_report_success(patch_requests_post, test_env):
     # Simulate a valid ContentRate list response
     fake_transaction_response = {
-        "url": "https://example.com/path/to/content",
-        "perUnitPriceMicros": 5000,
-        "totalUsePriceMicros": 15000,
-        "currency": "USD",
-        "license": {
-            "cuid": "license-cuid-123",
-            "licenseType": "standard",
-            "licensePath": "/licenses/standard",
-            "permissions": [{"name": "PARTIAL_USE"}],
-        },
+        "receipts": [
+            {
+                "url": "https://example.com/path/to/content",
+                "perUnitPriceMicros": 5000,
+                "totalUsePriceMicros": 15000,
+                "currency": "USD",
+                "license": {
+                    "id": "license-cuid-123",
+                    "licenseType": "standard",
+                    "licensePath": "/licenses/standard",
+                    "permissions": [{"name": "PARTIAL_USE"}],
+                },
+            }
+        ]
     }
-    patch_requests_post(MockResponse(json_obj=[fake_transaction_response]))
+    patch_requests_post(MockResponse(json_obj=fake_transaction_response))
     client = SelfReportingAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
 
-    req = DeveloperSelfReportRequest(
-        idempotency_id="unique-id-123",
+    req = SelfReportContentUsageRequest(
+        idempotencyId="unique-id-123",
         usage=[
             SelfReportUsage(
                 url="https://example.com/path/to/content",
-                times_used=3,
-                license_permissions=[{"name": "PARTIAL_USE"}],
-                license_cuid="license-cuid-123",
-                license_type="standard",
+                timesUsed=3,
+                licensePermissions=[{"name": "PARTIAL_USE"}],
+                licenseId="license-cuid-123",
+                licenseType="standard",
             )
         ],
     )
@@ -105,89 +86,84 @@ def test_report_success(patch_requests_post, test_env):
     resp = client.post_self_report(req)
 
     requests.post.assert_called_with(
-        f"{test_env.developer_api_base_url}/dev/v1/transactions/selfReport",
+        f"{test_env.developer_api_base_url}/dev/v2/transactions/selfReport",
         headers={"TollbitKey": "test-secret-key", "User-Agent": "test-agent"},
         json=req.model_dump(mode="json", by_alias=True),
     )
 
-    assert isinstance(resp, list)
-    assert isinstance(resp[0], DeveloperTransactionResponse)
+    assert isinstance(resp, SelfReportContentUsageResponse)
 
 
-def test_report_bad_request(patch_requests_post, test_env):
-    patch_requests_post(MockResponse(body_text="Bad Request", status_code=400))
+def test_report_problem_json_error(patch_requests_post, test_env):
+    fake_response = {
+        "detail": "Fail",
+        "instance": "/dev/v2/transactions/selfReport",
+        "status": 500,
+        "title": "Internal Server Error",
+        "type": "about:blank",
+    }
+
+    patch_requests_post(MockResponse(problem_json_obj=fake_response, status_code=500))
+
     client = SelfReportingAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    req = DeveloperSelfReportRequest(
-        idempotency_id="unique-id-123",
+    req = SelfReportContentUsageRequest(
+        idempotencyId="unique-id-123",
         usage=[
             SelfReportUsage(
                 url="https://example.com/path/to/content",
-                times_used=3,
-                license_permissions=[{"name": "PARTIAL_USE"}],
-                license_cuid="license-cuid-123",
-                license_type="standard",
+                timesUsed=3,
+                licensePermissions=[{"name": "PARTIAL_USE"}],
+                licenseId="license-cuid-123",
+                licenseType="standard",
             )
         ],
     )
-
-    with pytest.raises(BadRequestError):
+    with pytest.raises(ApiError) as exc_info:
         client.post_self_report(req)
 
-
-def test_report_server_error(patch_requests_post, test_env):
-    patch_requests_post(MockResponse(body_text="Server Error", status_code=500))
-    client = SelfReportingAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    req = DeveloperSelfReportRequest(
-        idempotency_id="unique-id-123",
-        usage=[
-            SelfReportUsage(
-                url="https://example.com/path/to/content",
-                times_used=3,
-                license_permissions=[{"name": "PARTIAL_USE"}],
-                license_cuid="license-cuid-123",
-                license_type="standard",
-            )
-        ],
+    error = exc_info.value
+    assert (
+        str(error)
+        == "API Error: (500) Internal Server Error - Fail (instance: /dev/v2/transactions/selfReport)"
     )
 
-    with pytest.raises(ServerError):
-        client.post_self_report(req)
 
-
-def test_report_unknown_error(patch_requests_post, test_env):
+def test_report_non_problem_json_error(patch_requests_post, test_env):
     patch_requests_post(MockResponse(body_text="Teapots on the attack", status_code=418))
+
     client = SelfReportingAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    req = DeveloperSelfReportRequest(
-        idempotency_id="unique-id-123",
+    req = SelfReportContentUsageRequest(
+        idempotencyId="unique-id-123",
         usage=[
             SelfReportUsage(
                 url="https://example.com/path/to/content",
-                times_used=3,
-                license_permissions=[{"name": "PARTIAL_USE"}],
-                license_cuid="license-cuid-123",
-                license_type="standard",
+                timesUsed=3,
+                licensePermissions=[{"name": "PARTIAL_USE"}],
+                licenseId="license-cuid-123",
+                licenseType="standard",
             )
         ],
     )
-
-    with pytest.raises(UnknownError):
+    with pytest.raises(ApiError) as exc_info:
         client.post_self_report(req)
+
+    error = exc_info.value
+    assert str(error) == "API Error: (418) Teapots on the attack"
 
 
 def test_report_unreachable(mock_server_down, test_env):
     client = SelfReportingAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
-    req = DeveloperSelfReportRequest(
-        idempotency_id="unique-id-123",
+    req = SelfReportContentUsageRequest(
+        idempotencyId="unique-id-123",
         usage=[
             SelfReportUsage(
                 url="https://example.com/path/to/content",
-                times_used=3,
-                license_permissions=[{"name": "PARTIAL_USE"}],
-                license_cuid="license-cuid-123",
-                license_type="standard",
+                timesUsed=3,
+                licensePermissions=[{"name": "PARTIAL_USE"}],
+                licenseId="license-cuid-123",
+                licenseType="standard",
             )
         ],
     )
-
     with pytest.raises(ServerError):
         client.post_self_report(req)

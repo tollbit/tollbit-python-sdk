@@ -3,26 +3,32 @@ from tollbit._apis.self_reporting_api import SelfReportingAPI
 from tollbit.self_reporting.client import SelfReportingClient, TransactionBlock
 from tollbit.self_reporting.usage import usage
 from tollbit import licences
-from tollbit._apis.models import DeveloperSelfReportRequest, DeveloperTransactionResponse
+from tollbit._apis.models import (
+    SelfReportContentUsageRequest,
+    SelfReportContentUsageResponse,
+    SelfReportUsageReceipt,
+)
 from unittest.mock import MagicMock
 
 
 def test_self_report_usage():
     mock_self_reporting_api = MagicMock(spec=SelfReportingAPI)
-    mock_self_reporting_api.post_self_report.return_value = [
-        DeveloperTransactionResponse(
-            url="https://example.com/resource",
-            per_unit_price_micros=1000,
-            total_use_price_micros=5000,
-            currency="USD",
-            license={
-                "cuid": "license-cuid-123",
-                "licenseType": "standard",
-                "licensePath": "/licenses/standard",
-                "permissions": [{"name": "PARTIAL_USE"}],
-            },
-        )
-    ]
+    mock_self_reporting_api.post_self_report.return_value = SelfReportContentUsageResponse(
+        receipts=[
+            SelfReportUsageReceipt(
+                url="https://example.com/resource",
+                perUnitPriceMicros=1000,
+                totalUsePriceMicros=5000,
+                currency="USD",
+                license={
+                    "id": "license-cuid-123",
+                    "licenseType": "standard",
+                    "licensePath": "/licenses/standard",
+                    "permissions": [{"name": "PARTIAL_USE"}],
+                },
+            )
+        ]
+    )
 
     client = SelfReportingClient(self_reporting_api=mock_self_reporting_api)
 
@@ -38,9 +44,8 @@ def test_self_report_usage():
     assert len(tb.usages) == 1
 
     result = client.report(tb)
-    assert len(result) == 1
-    assert isinstance(result[0], DeveloperTransactionResponse)
+    assert isinstance(result, SelfReportContentUsageResponse)
 
     mock_self_reporting_api.post_self_report.assert_called_once()
     call_args = mock_self_reporting_api.post_self_report.call_args[0][0]
-    assert isinstance(call_args, DeveloperSelfReportRequest)
+    assert isinstance(call_args, SelfReportContentUsageRequest)

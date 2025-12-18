@@ -3,7 +3,6 @@ from tollbit.use_content.client import UseContentClient
 from tollbit._apis.content_api import ContentAPI
 from tollbit._apis.token_api import TokenAPI
 from tollbit._apis.content_retrieval_api import ContentRetrievalAPI
-from tollbit._apis.models import ContentRate
 from unittest.mock import MagicMock
 from test_helpers.stub_api_responses import stub_rate_response, stub_content_response
 from tollbit.tokens import TollbitToken

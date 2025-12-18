@@ -1,11 +1,11 @@
 from datetime import datetime
 from dateutil.parser import parse
 from tollbit._apis.models import (
-    ContentRate,
     RatePrice,
     RateLicenseResponse,
     CatalogResponse,
     GetContentResponse,
+    DeveloperRateResponse,
 )
 from tollbit._apis.models._generated.openapi_tollbit_apis import (
     PagedSearchResultResponse,
@@ -16,10 +16,10 @@ from tollbit._apis.models._generated.openapi_tollbit_apis import (
 
 
 def stub_rate_response():
-    return ContentRate(
+    return DeveloperRateResponse(
         price=RatePrice(priceMicros=0, currency="USD"),
         license=RateLicenseResponse(
-            cuid="license-cuid-123",
+            id="license-cuid-123",
             licenseType="STANDARD",
             licensePath="/licenses/standard",
             permissions=[],
