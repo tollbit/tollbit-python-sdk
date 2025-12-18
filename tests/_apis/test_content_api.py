@@ -125,10 +125,10 @@ def test_get_content_catalog_success(patch_requests_get, test_env):
     )
 
     assert isinstance(resp, CatalogResponse)
-    assert resp.pageToken == "next-page-token"
+    assert resp.page_token == "next-page-token"
     assert len(resp.pages) == 2
-    assert resp.pages[0].propertyId == "content-1"
-    assert resp.pages[1].propertyId == "content-2"
+    assert resp.pages[0].property_id == "content-1"
+    assert resp.pages[1].property_id == "content-2"
 
 
 def test_get_content_catalog_second_page(patch_requests_get, test_env):
@@ -152,9 +152,9 @@ def test_get_content_catalog_second_page(patch_requests_get, test_env):
     )
 
     assert isinstance(resp, CatalogResponse)
-    assert resp.pageToken is None
+    assert resp.page_token is None
     assert len(resp.pages) == 1
-    assert resp.pages[0].propertyId == "content-3"
+    assert resp.pages[0].property_id == "content-3"
 
 
 def test_get_content_catalog_problem_json_error(patch_requests_get, test_env):

@@ -20,7 +20,12 @@ data = client.get_sanctioned_content(
     currency=currencies.USD,
     license_type=licences.types.ON_DEMAND_LICENSE,
 )
-print("Markdown data:", data)
+print("Markdown data:")
+print(f"data.content.header: {data.content.header}")
+print(f"data.content.body (first 100 chars): {data.content.body[:100]}")
+print(f"data.content.footer: {data.content.footer}")
+print(f"data.metadata.title: {data.metadata.title}")
+
 
 data = client.get_sanctioned_content(
     url="https://pioneervalleygazette.com/daydream",
