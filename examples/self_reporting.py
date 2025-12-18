@@ -24,8 +24,26 @@ daydream_license = daydream_rate_info[0].license
 sunset_rate_info = client.get_rate(url="https://pioneervalleygazette.com/sunset")
 sunset_license = sunset_rate_info[0].license
 
-print("Daydream rate info:", daydream_rate_info[0].model_dump())
-print("Sunset rate info:", sunset_rate_info[0].model_dump())
+print("Daydream rate info:")
+for ix, rate in enumerate(daydream_rate_info):
+    print("Rate index", ix)
+    print(f"rate.price.priceMicros: {rate.price.priceMicros}")
+    print(f"rate.price.currency: {rate.price.currency}")
+    print(f"rate.license.id: {rate.license.id}")
+    print(f"rate.license.licenseType: {rate.license.licenseType}")
+    print(f"rate.license.licensePath: {rate.license.licensePath}")
+    print(f"rate.permissions: {rate.license.permissions}")
+
+
+print("Sunset rate info:")
+for ix, rate in enumerate(sunset_rate_info):
+    print("Rate index", ix)
+    print(f"rate.price.priceMicros: {rate.price.priceMicros}")
+    print(f"rate.price.currency: {rate.price.currency}")
+    print(f"rate.license.id: {rate.license.id}")
+    print(f"rate.license.licenseType: {rate.license.licenseType}")
+    print(f"rate.license.licensePath: {rate.license.licensePath}")
+    print(f"rate.permissions: {rate.license.permissions}")
 
 reporting_client = self_reporting.create_client(secret_key=api_key, user_agent=user_agent)
 
@@ -57,4 +75,14 @@ transaction_block = reporting_client.create_transaction_block(usages)
 
 # Now we can report the transaction block to Tollbit
 result = reporting_client.report(transaction_block)
-print("Transaction result:", [r.model_dump() for r in result])
+print("Receipts:")
+for ix, receipt in enumerate(result.receipts):
+    print("Receipt index", ix)
+    print(f"receipt.url: {receipt.url}")
+    print(f"receipt.perUnitPriceMicros: {receipt.perUnitPriceMicros}")
+    print(f"receipt.totalUsePriceMicros: {receipt.totalUsePriceMicros}")
+    print(f"receipt.currency: {receipt.currency}")
+    print(f"receipt.license.id: {receipt.license.id}")
+    print(f"receipt.license.licenseType: {receipt.license.licenseType}")
+    print(f"receipt.license.licensePath: {receipt.license.licensePath}")
+    print(f"receipt.license.permissions: {receipt.license.permissions}")

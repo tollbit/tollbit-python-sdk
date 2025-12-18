@@ -10,6 +10,8 @@ tags:
   - name: Get Catalog of Pages for Property
   - name: Search
   - name: Search Content
+  - name: Reporting
+  - name: Report Content Usage
 paths:
   /dev/v2/content/{contentUrl}:
     get:
@@ -177,6 +179,58 @@ paths:
       tags:
         - Tollbit Content
         - Get Tollbit Rates
+      security:
+        - ApiKeyAuth: []
+  /dev/v2/reporting/usage:
+    post:
+      operationId: ReportingService_reportContentUsage
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SelfReportContentUsageResponse'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+      tags:
+        - Reporting
+        - Report Content Usage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelfReportContentUsageRequest'
       security:
         - ApiKeyAuth: []
   /dev/v2/search:
@@ -674,6 +728,81 @@ components:
           $ref: '#/components/schemas/Publisher'
         availability:
           $ref: '#/components/schemas/Availability'
+    SelfReportContentUsageRequest:
+      type: object
+      required:
+        - idempotencyId
+        - usage
+      properties:
+        idempotencyId:
+          type: string
+        usage:
+          type: array
+          items:
+            $ref: '#/components/schemas/SelfReportUsage'
+    SelfReportContentUsageResponse:
+      type: object
+      required:
+        - receipts
+      properties:
+        receipts:
+          type: array
+          items:
+            $ref: '#/components/schemas/SelfReportUsageReceipt'
+    SelfReportLicensePermission:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    SelfReportUsage:
+      type: object
+      required:
+        - url
+        - timesUsed
+        - licensePermissions
+        - licenseType
+      properties:
+        url:
+          type: string
+          format: uri
+        timesUsed:
+          type: integer
+          format: int32
+        licensePermissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SelfReportLicensePermission'
+        licenseId:
+          type: string
+        licenseType:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: {}
+    SelfReportUsageReceipt:
+      type: object
+      required:
+        - url
+        - perUnitPriceMicros
+        - totalUsePriceMicros
+        - currency
+        - license
+      properties:
+        url:
+          type: string
+          format: uri
+        perUnitPriceMicros:
+          type: integer
+          format: int64
+        totalUsePriceMicros:
+          type: integer
+          format: int64
+        currency:
+          type: string
+        license:
+          $ref: '#/components/schemas/RateLicenseResponse'
     SubdomainAccessToken:
       type: object
       required:

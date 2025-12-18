@@ -1,8 +1,8 @@
 from __future__ import annotations
 from tollbit._apis.self_reporting_api import SelfReportingAPI
 from tollbit._apis.models import (
-    DeveloperSelfReportRequest,
-    DeveloperTransactionResponse,
+    SelfReportContentUsageRequest,
+    SelfReportContentUsageResponse,
     SelfReportUsage,
     SelfReportLicensePermission,
 )
@@ -39,7 +39,7 @@ class SelfReportingClient:
     def create_transaction_block(self, usages: list[Usage]) -> TransactionBlock:
         return TransactionBlock(str(uuid.uuid4()), usages)
 
-    def report(self, transaction_block: TransactionBlock) -> list[DeveloperTransactionResponse]:
+    def report(self, transaction_block: TransactionBlock) -> SelfReportContentUsageResponse:
         api_usages = []
 
         for usage in transaction_block.usages:
@@ -48,16 +48,16 @@ class SelfReportingClient:
             api_usages.append(
                 SelfReportUsage(
                     url=usage.url,
-                    times_used=usage.times_used,
-                    license_permissions=perms,
-                    license_cuid=usage.license_id,
-                    license_type=usage.license_type.value,
+                    timesUsed=usage.times_used,
+                    licensePermissions=perms,
+                    licenseId=usage.license_id,
+                    licenseType=usage.license_type.value,
                     metadata=usage.metadata,
                 )
             )
 
-        request = DeveloperSelfReportRequest(
-            idempotency_id=transaction_block.idempotency_id,
+        request = SelfReportContentUsageRequest(
+            idempotencyId=transaction_block.idempotency_id,
             usage=api_usages,
         )
 

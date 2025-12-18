@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import List
+from typing import Any, Dict, List
 
 from pydantic import AnyUrl, BaseModel
 
@@ -114,6 +114,27 @@ class SearchResult(BaseModel):
     availability: Availability
 
 
+class SelfReportLicensePermission(BaseModel):
+    name: str
+
+
+class SelfReportUsage(BaseModel):
+    url: AnyUrl
+    timesUsed: int
+    licensePermissions: List[SelfReportLicensePermission]
+    licenseId: str | None = None
+    licenseType: str
+    metadata: Dict[str, Any] | None = None
+
+
+class SelfReportUsageReceipt(BaseModel):
+    url: AnyUrl
+    perUnitPriceMicros: int
+    totalUsePriceMicros: int
+    currency: str
+    license: RateLicenseResponse
+
+
 class Type(Enum):
     http = 'http'
 
@@ -151,3 +172,12 @@ class GetContentResponse(BaseModel):
 class PagedSearchResultResponse(BaseModel):
     nextToken: str
     items: List[SearchResult]
+
+
+class SelfReportContentUsageRequest(BaseModel):
+    idempotencyId: str
+    usage: List[SelfReportUsage]
+
+
+class SelfReportContentUsageResponse(BaseModel):
+    receipts: List[SelfReportUsageReceipt]

@@ -1,19 +1,17 @@
 import requests
 from tollbit._environment import Environment
 from tollbit._apis.models import (
-    DeveloperSelfReportRequest,
-    DeveloperTransactionResponse,
+    SelfReportContentUsageRequest,
+    SelfReportContentUsageResponse,
 )
 from tollbit._apis.errors import (
-    UnauthorizedError,
-    BadRequestError,
+    ApiError,
     ServerError,
-    UnknownError,
 )
 from pydantic import TypeAdapter
 from tollbit._logging import get_sdk_logger
 
-_SELF_REPORTING_API_BASE_PATH = "/dev/v1/transactions/selfReport"
+_SELF_REPORTING_API_BASE_PATH = "/dev/v2/transactions/selfReport"
 
 logger = get_sdk_logger(__name__)
 
@@ -34,8 +32,8 @@ class SelfReportingAPI:
         self._base_url = env.developer_api_base_url
 
     def post_self_report(
-        self, request: DeveloperSelfReportRequest
-    ) -> list[DeveloperTransactionResponse]:
+        self, request: SelfReportContentUsageRequest
+    ) -> SelfReportContentUsageResponse:
         try:
             headers = {"User-Agent": self.user_agent, "TollbitKey": self.api_key}
             url = f"{self._base_url}{_SELF_REPORTING_API_BASE_PATH}"
@@ -49,21 +47,21 @@ class SelfReportingAPI:
                 headers=headers,
                 json=json_body,
             )
+
+            logger.debug(
+                "Received self reporting response",
+                extra={"status_code": response.status_code, "response_text": response.text},
+            )
+
         except requests.RequestException as e:
             raise ServerError("Unable to connect to the Tollbit server") from e
 
-        match response.status_code:
-            case 200:
-                logger.debug("Raw response", extra={"response_text": response.text})
-                resp: list[DeveloperTransactionResponse] = TypeAdapter(
-                    list[DeveloperTransactionResponse]
-                ).validate_python(response.json())
-                return resp
-            case 400:
-                raise BadRequestError("Bad request sent to the Tollbit server")
-            case 401:
-                raise UnauthorizedError("Unauthorized: Invalid API key")
-            case 500:
-                raise ServerError("Internal server error at Tollbit")
-            case _:
-                raise UnknownError(f"Unexpected status code: {response.status_code}")
+        if response.status_code != 200:
+            err = ApiError.from_response(response)
+            logger.error(str(err))
+            raise err
+
+        resp: SelfReportContentUsageResponse = TypeAdapter(
+            SelfReportContentUsageResponse
+        ).validate_python(response.json())
+        return resp
