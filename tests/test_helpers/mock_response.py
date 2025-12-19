@@ -34,6 +34,17 @@ class MockResponse:
         return self.body_text or "OK"
 
 
+# Patch requests.get for testing
+@pytest.fixture()
+def patch_requests_get(monkeypatch):
+    def _patch_requests_get(response: MockResponse):
+        mock_get = Mock(return_value=response)
+        monkeypatch.setattr(requests, "get", mock_get)
+        return mock_get
+
+    return _patch_requests_get
+
+
 @pytest.fixture()
 def patch_requests_post(monkeypatch):
     def _patch_requests_post(response: MockResponse):
