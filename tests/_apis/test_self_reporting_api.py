@@ -14,37 +14,12 @@ from tollbit._apis.models import (
 )
 import requests
 from unittest import mock
-from test_helpers.mock_response import MockResponse
-
-
-# Patch requests.get for testing
-@pytest.fixture()
-def patch_requests_get(monkeypatch):
-    def _patch_requests_get(response: MockResponse):
-        mock_get = mock.Mock(return_value=response)
-        monkeypatch.setattr(requests, "get", mock_get)
-        return mock_get
-
-    return _patch_requests_get
-
-
-@pytest.fixture()
-def patch_requests_post(monkeypatch):
-    def _patch_requests_post(response: MockResponse):
-        mock_post = mock.Mock(return_value=response)
-        monkeypatch.setattr(requests, "post", mock_post)
-        return mock_post
-
-    return _patch_requests_post
-
-
-@pytest.fixture()
-def mock_server_down(monkeypatch):
-    def _raise_connection_error(url, headers=None, json=None):
-        raise requests.ConnectionError("Unable to connect to the server")
-
-    monkeypatch.setattr(requests, "get", _raise_connection_error)
-    monkeypatch.setattr(requests, "post", _raise_connection_error)
+from test_helpers.mock_response import (
+    MockResponse,
+    patch_requests_post,
+    mock_server_down,
+    assert_json_request_called_with,
+)
 
 
 # --- Tests ---
@@ -67,28 +42,40 @@ def test_report_success(patch_requests_post, test_env):
             }
         ]
     }
-    patch_requests_post(MockResponse(json_obj=fake_transaction_response))
+    post_mock = patch_requests_post(MockResponse(json_obj=fake_transaction_response))
     client = SelfReportingAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
 
     req = SelfReportContentUsageRequest(
-        idempotencyId="unique-id-123",
+        idempotency_id="unique-id-123",
         usage=[
             SelfReportUsage(
                 url="https://example.com/path/to/content",
-                timesUsed=3,
-                licensePermissions=[{"name": "PARTIAL_USE"}],
-                licenseId="license-cuid-123",
-                licenseType="standard",
+                times_used=3,
+                license_permissions=[{"name": "PARTIAL_USE"}],
+                license_id="license-cuid-123",
+                license_type="standard",
             )
         ],
     )
 
     resp = client.post_self_report(req)
 
-    requests.post.assert_called_with(
-        f"{test_env.developer_api_base_url}/dev/v2/transactions/selfReport",
-        headers={"TollbitKey": "test-secret-key", "User-Agent": "test-agent"},
-        json=req.model_dump(mode="json", by_alias=True),
+    assert_json_request_called_with(
+        post_mock,
+        expected_url=f"{test_env.developer_api_base_url}/dev/v2/transactions/selfReport",
+        expected_headers={"TollbitKey": "test-secret-key", "User-Agent": "test-agent"},
+        expected_json={
+            "idempotencyId": "unique-id-123",
+            "usage": [
+                {
+                    "url": "https://example.com/path/to/content",
+                    "timesUsed": 3,
+                    "licensePermissions": [{"name": "PARTIAL_USE"}],
+                    "licenseId": "license-cuid-123",
+                    "licenseType": "standard",
+                }
+            ],
+        },
     )
 
     assert isinstance(resp, SelfReportContentUsageResponse)

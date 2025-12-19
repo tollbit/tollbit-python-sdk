@@ -70,7 +70,7 @@ class TokenAPI:
         return _handle_response(response, CreateCrawlAccessTokenResponse)
 
     def _post_model(self, path: str, headers: dict[str, str], body: BaseModel) -> requests.Response:
-        payload = body.model_dump(mode="json")
+        payload = body.model_dump(mode="json", by_alias=True, exclude_none=True)
         response = requests.post(f"{self._base_url}{path}", headers=headers, json=payload)
         return response
 

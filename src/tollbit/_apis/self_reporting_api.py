@@ -37,7 +37,7 @@ class SelfReportingAPI:
         try:
             headers = {"User-Agent": self.user_agent, "TollbitKey": self.api_key}
             url = f"{self._base_url}{_SELF_REPORTING_API_BASE_PATH}"
-            json_body = request.model_dump(mode="json", by_alias=True)
+            json_body = request.model_dump(mode="json", by_alias=True, exclude_none=True)
             logger.debug(
                 "reporting usages...",
                 extra={"request": json_body, "url": url, "headers": headers},

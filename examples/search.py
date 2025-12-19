@@ -14,7 +14,7 @@ results = client.search(q="DIY home projects for millenials")
 
 print("Search Results:")
 print(f"Found {len(results.items)} results")
-print(f"Next token: {results.nextToken}")
+print(f"Next token: {results.next_token}")
 print()
 
 for i, item in enumerate(results.items, 1):
@@ -42,10 +42,10 @@ print(f"Search on specific properties: {len(results_properties.items)} results")
 print()
 
 # Pagination example - get next page using next_token
-if results.nextToken:
+if results.next_token:
     next_page = client.search(
         q="DIY home projects for millenials",
-        next_token=results.nextToken,
+        next_token=results.next_token,
     )
     print(f"Next page results: {len(next_page.items)} results")
     print()

@@ -22,7 +22,7 @@ def test_search_basic():
     )
     assert result == fake_response
     assert len(result.items) == 2
-    assert result.nextToken == "next-token-123"
+    assert result.next_token == "next-token-123"
 
 
 def test_search_with_size():

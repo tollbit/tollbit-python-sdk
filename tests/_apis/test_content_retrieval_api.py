@@ -10,26 +10,7 @@ import requests
 from tollbit._apis.models import GetContentResponse
 from unittest import mock
 from tollbit.content_formats import Format
-from test_helpers.mock_response import MockResponse
-
-
-# Patch requests.get for testing
-@pytest.fixture()
-def patch_requests_get(monkeypatch):
-    def _patch_requests_get(response: MockResponse):
-        mock_get = mock.Mock(return_value=response)
-        monkeypatch.setattr(requests, "get", mock_get)
-        return mock_get
-
-    return _patch_requests_get
-
-
-@pytest.fixture()
-def mock_server_down(monkeypatch):
-    def _raise_connection_error(url, headers=None):
-        raise requests.ConnectionError("Unable to connect to the server")
-
-    monkeypatch.setattr(requests, "get", _raise_connection_error)
+from test_helpers.mock_response import MockResponse, patch_requests_get, mock_server_down
 
 
 # --- Tests ---

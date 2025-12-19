@@ -7,38 +7,39 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List
 
-from pydantic import AnyUrl, BaseModel
+from pydantic import AnyUrl, Field
+from tollbit._apis.models.api_base import TollbitBaseModel
 
 
-class Availability(BaseModel):
+class Availability(TollbitBaseModel):
     discoverable: bool
     ready_to_license: bool
 
 
-class ContentMetadata(BaseModel):
+class ContentMetadata(TollbitBaseModel):
     title: str | None = None
     description: str | None = None
-    imageUrl: str | None = None
+    image_url: str | None = Field(None, alias='imageUrl')
     author: str | None = None
     published: str | None = None
     modified: str | None = None
 
 
-class CreateAOSAccessTokenRequest(BaseModel):
+class CreateAOSAccessTokenRequest(TollbitBaseModel):
     url: AnyUrl
-    userAgent: str
+    user_agent: str = Field(..., alias='userAgent')
 
 
-class CreateAOSAccessTokenResponse(BaseModel):
+class CreateAOSAccessTokenResponse(TollbitBaseModel):
     token: str
 
 
-class CreateCrawlAccessTokenRequest(BaseModel):
+class CreateCrawlAccessTokenRequest(TollbitBaseModel):
     url: AnyUrl
-    userAgent: str
+    user_agent: str = Field(..., alias='userAgent')
 
 
-class CreateCrawlAccessTokenResponse(BaseModel):
+class CreateCrawlAccessTokenResponse(TollbitBaseModel):
     token: str
 
 
@@ -47,31 +48,31 @@ class Format(Enum):
     markdown = 'markdown'
 
 
-class CreateSubdomainAccessTokenRequest(BaseModel):
+class CreateSubdomainAccessTokenRequest(TollbitBaseModel):
     url: AnyUrl
-    userAgent: str
-    maxPriceMicros: int
+    user_agent: str = Field(..., alias='userAgent')
+    max_price_micros: int = Field(..., alias='maxPriceMicros')
     currency: str
-    licenseType: str
-    licenseCuid: str
+    license_type: str = Field(..., alias='licenseType')
+    license_cuid: str = Field(..., alias='licenseCuid')
     format: Format | None = None
 
 
-class CreateSubdomainAccessTokenResponse(BaseModel):
+class CreateSubdomainAccessTokenResponse(TollbitBaseModel):
     token: str
 
 
-class Error(BaseModel):
+class Error(TollbitBaseModel):
     pass
 
 
-class PageContent(BaseModel):
+class PageContent(TollbitBaseModel):
     header: str
     body: str
     footer: str
 
 
-class ProblemJSON(BaseModel):
+class ProblemJSON(TollbitBaseModel):
     type: str
     title: str
     status: int
@@ -79,34 +80,34 @@ class ProblemJSON(BaseModel):
     instance: str | None = None
 
 
-class PropertyPage(BaseModel):
-    propertyId: str
-    pageUrl: str
-    lastMod: datetime | None = None
+class PropertyPage(TollbitBaseModel):
+    property_id: str = Field(..., alias='propertyId')
+    page_url: str = Field(..., alias='pageUrl')
+    last_mod: datetime | None = Field(None, alias='lastMod')
 
 
-class Publisher(BaseModel):
+class Publisher(TollbitBaseModel):
     domain: str
     name: str
 
 
-class RateLicensePermission(BaseModel):
+class RateLicensePermission(TollbitBaseModel):
     name: str
 
 
-class RateLicenseResponse(BaseModel):
+class RateLicenseResponse(TollbitBaseModel):
     id: str
-    licenseType: str
-    licensePath: str
+    license_type: str = Field(..., alias='licenseType')
+    license_path: str = Field(..., alias='licensePath')
     permissions: List[RateLicensePermission]
 
 
-class RatePrice(BaseModel):
-    priceMicros: int
+class RatePrice(TollbitBaseModel):
+    price_micros: int = Field(..., alias='priceMicros')
     currency: str
 
 
-class SearchResult(BaseModel):
+class SearchResult(TollbitBaseModel):
     title: str
     url: str
     published_date: str
@@ -114,23 +115,23 @@ class SearchResult(BaseModel):
     availability: Availability
 
 
-class SelfReportLicensePermission(BaseModel):
+class SelfReportLicensePermission(TollbitBaseModel):
     name: str
 
 
-class SelfReportUsage(BaseModel):
+class SelfReportUsage(TollbitBaseModel):
     url: AnyUrl
-    timesUsed: int
-    licensePermissions: List[SelfReportLicensePermission]
-    licenseId: str | None = None
-    licenseType: str
+    times_used: int = Field(..., alias='timesUsed')
+    license_permissions: List[SelfReportLicensePermission] = Field(..., alias='licensePermissions')
+    license_id: str | None = Field(None, alias='licenseId')
+    license_type: str = Field(..., alias='licenseType')
     metadata: Dict[str, Any] | None = None
 
 
-class SelfReportUsageReceipt(BaseModel):
+class SelfReportUsageReceipt(TollbitBaseModel):
     url: AnyUrl
-    perUnitPriceMicros: int
-    totalUsePriceMicros: int
+    per_unit_price_micros: int = Field(..., alias='perUnitPriceMicros')
+    total_use_price_micros: int = Field(..., alias='totalUsePriceMicros')
     currency: str
     license: RateLicenseResponse
 
@@ -140,44 +141,44 @@ class Type(Enum):
 
 
 class Scheme(Enum):
-    Bearer = 'Bearer'
+    bearer = 'Bearer'
 
 
-class SubdomainAccessToken(BaseModel):
+class SubdomainAccessToken(TollbitBaseModel):
     type: Type
     scheme: Scheme
 
 
-class CatalogResponse(BaseModel):
-    pageToken: str | None = None
+class CatalogResponse(TollbitBaseModel):
+    page_token: str | None = Field(None, alias='pageToken')
     pages: List[PropertyPage]
 
 
-class ContentRate(BaseModel):
+class ContentRate(TollbitBaseModel):
     price: RatePrice
     license: RateLicenseResponse
 
 
-class DeveloperRateResponse(BaseModel):
+class DeveloperRateResponse(TollbitBaseModel):
     price: RatePrice
     license: RateLicenseResponse
 
 
-class GetContentResponse(BaseModel):
+class GetContentResponse(TollbitBaseModel):
     content: PageContent
     metadata: ContentMetadata
     rate: ContentRate | None = None
 
 
-class PagedSearchResultResponse(BaseModel):
-    nextToken: str
+class PagedSearchResultResponse(TollbitBaseModel):
+    next_token: str = Field(..., alias='nextToken')
     items: List[SearchResult]
 
 
-class SelfReportContentUsageRequest(BaseModel):
-    idempotencyId: str
+class SelfReportContentUsageRequest(TollbitBaseModel):
+    idempotency_id: str = Field(..., alias='idempotencyId')
     usage: List[SelfReportUsage]
 
 
-class SelfReportContentUsageResponse(BaseModel):
+class SelfReportContentUsageResponse(TollbitBaseModel):
     receipts: List[SelfReportUsageReceipt]

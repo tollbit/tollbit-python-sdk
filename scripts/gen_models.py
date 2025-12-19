@@ -37,6 +37,8 @@ def run():
             "--use-union-operator",               # | syntax for unions
             "--strict-nullable",
             "--disable-timestamp",
+            "--snake-case-field",               # field_name instead of fieldName
+            "--base-class", "tollbit._apis.models.api_base.TollbitBaseModel",
         ]
         print("Generating:", spec.name, "->", mod_file.name)
         try:
