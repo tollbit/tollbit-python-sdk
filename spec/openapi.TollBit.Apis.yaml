@@ -466,11 +466,11 @@ components:
       type: object
       required:
         - discoverable
-        - ready_to_license
+        - readyToLicense
       properties:
         discoverable:
           type: boolean
-        ready_to_license:
+        readyToLicense:
           type: boolean
     CatalogResponse:
       type: object
@@ -714,7 +714,7 @@ components:
       required:
         - title
         - url
-        - published_date
+        - publishedDate
         - publisher
         - availability
       properties:
@@ -722,7 +722,7 @@ components:
           type: string
         url:
           type: string
-        published_date:
+        publishedDate:
           type: string
         publisher:
           $ref: '#/components/schemas/Publisher'

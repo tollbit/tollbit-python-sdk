@@ -13,7 +13,7 @@ from tollbit._apis.models.api_base import TollbitBaseModel
 
 class Availability(TollbitBaseModel):
     discoverable: bool
-    ready_to_license: bool
+    ready_to_license: bool = Field(..., alias='readyToLicense')
 
 
 class ContentMetadata(TollbitBaseModel):
@@ -110,7 +110,7 @@ class RatePrice(TollbitBaseModel):
 class SearchResult(TollbitBaseModel):
     title: str
     url: str
-    published_date: str
+    published_date: str = Field(..., alias='publishedDate')
     publisher: Publisher
     availability: Availability
 
