@@ -1,7 +1,7 @@
 from __future__ import annotations
 from tollbit._apis.models import ProblemJSON
 from tollbit._logging import get_sdk_logger
-from requests import Response
+from httpx import Response
 
 logger = get_sdk_logger(__name__)
 
