@@ -73,6 +73,7 @@ def mock_server_down(monkeypatch):
 def mock_httpx_server_down(respx_mock):
     def _mock_httpx_server_down(url: str):
         respx_mock.post(url).mock(side_effect=httpx.RequestError("Unable to connect to the server"))
+        respx_mock.get(url).mock(side_effect=httpx.RequestError("Unable to connect to the server"))
 
     return _mock_httpx_server_down
 
