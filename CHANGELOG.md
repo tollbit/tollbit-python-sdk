@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.0 - 2026-01-05
+
+### Added
+
+- Add Search to SDK
+
+### Changed
+
+ - Update reporting to use V2 API
+ - Update content catalog to use V2 API
+ - Update rate to use V2 API
+ - Updated api objects to use camel case names
+
 ## 0.3.0 - 2025-12-12
 
 ### Added
