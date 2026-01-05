@@ -70,13 +70,11 @@ class AsyncContentRetrievalAPI:
 class ContentRetrievalAPI:
     def __init__(self, user_agent: str, env: Environment):
         self._async_api = AsyncContentRetrievalAPI(user_agent, env)
+        self._env = env
 
     def get_content(
         self, token: TollbitToken, content_url: str, format: Format
     ) -> GetContentResponse:
         return anyio.run(
-            self._async_api.get_content,
-            token,
-            content_url,
-            format,
+            self._async_api.get_content, token, content_url, format, backend=self._env.anyio_backend
         )
