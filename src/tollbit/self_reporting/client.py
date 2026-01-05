@@ -47,7 +47,7 @@ class SelfReportingClient:
 
             api_usages.append(
                 SelfReportUsage(
-                    url=usage.url,
+                    url=usage.url,  # type: ignore
                     timesUsed=usage.times_used,
                     licensePermissions=perms,
                     licenseId=usage.license_id,
