@@ -36,7 +36,7 @@ class ApiError(RuntimeError):
                 )
                 return cls(
                     status_code=response.status_code,
-                    raw_message=response.reason,
+                    raw_message=response.reason_phrase,
                 )
 
         return cls(status_code=response.status_code, raw_message=response.text)
