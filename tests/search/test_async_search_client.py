@@ -4,6 +4,7 @@ from tollbit._apis.search_api import AsyncSearchAPI
 from unittest.mock import AsyncMock, MagicMock
 from test_helpers.stub_api_responses import stub_search_response
 
+
 @pytest.mark.anyio
 async def test_async_search_basic():
     fake_response = stub_search_response()
@@ -24,6 +25,7 @@ async def test_async_search_basic():
     assert len(result.items) == 2
     assert result.next_token == "next-token-123"
 
+
 @pytest.mark.anyio
 async def test_async_search_with_size():
     fake_response = stub_search_response()
@@ -42,6 +44,7 @@ async def test_async_search_with_size():
     )
     assert result == fake_response
 
+
 @pytest.mark.anyio
 async def test_async_search_with_next_token():
     fake_response = stub_search_response()
@@ -59,6 +62,7 @@ async def test_async_search_with_next_token():
         properties=None,
     )
     assert result == fake_response
+
 
 @pytest.mark.anyio
 async def test_async_search_with_properties():
@@ -80,6 +84,7 @@ async def test_async_search_with_properties():
         properties="example.com,tutorial.com",
     )
     assert result == fake_response
+
 
 @pytest.mark.anyio
 async def test_async_search_with_all_parameters():
@@ -104,6 +109,7 @@ async def test_async_search_with_all_parameters():
     )
     assert result == fake_response
 
+
 @pytest.mark.anyio
 async def test_async_search_properties_max_limit():
     mock_search_api = MagicMock(spec=AsyncSearchAPI)
@@ -115,6 +121,7 @@ async def test_async_search_properties_max_limit():
         await client.search(q="test", properties=properties)
 
     mock_search_api.search.assert_not_called()
+
 
 @pytest.mark.anyio
 async def test_async_search_properties_exactly_20():
@@ -135,6 +142,7 @@ async def test_async_search_properties_exactly_20():
         properties=",".join(properties),
     )
     assert result == fake_response
+
 
 @pytest.mark.anyio
 async def test_async_search_properties_empty_list():

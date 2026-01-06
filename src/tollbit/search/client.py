@@ -22,6 +22,7 @@ def create_client(
         ),
     )
 
+
 def create_async_client(
     secret_key: str,
     user_agent: str,
@@ -34,6 +35,7 @@ def create_async_client(
             env=env,
         ),
     )
+
 
 class AsyncSearchClient:
     search_api: AsyncSearchAPI
@@ -81,7 +83,6 @@ class AsyncSearchClient:
             next_token=next_token,
             properties=properties_str,
         )
-
 
 
 class SearchClient:

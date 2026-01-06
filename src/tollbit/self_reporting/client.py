@@ -26,6 +26,7 @@ def create_client(
         ),
     )
 
+
 def create_async_client(
     secret_key: str,
     user_agent: str,
@@ -38,6 +39,7 @@ def create_async_client(
             env=env,
         ),
     )
+
 
 class AsyncSelfReportingClient:
     self_reporting_api: AsyncSelfReportingAPI

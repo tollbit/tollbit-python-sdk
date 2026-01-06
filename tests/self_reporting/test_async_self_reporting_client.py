@@ -10,6 +10,7 @@ from tollbit._apis.models import (
 )
 from unittest.mock import AsyncMock, MagicMock
 
+
 @pytest.mark.anyio
 async def test_async_self_report_usage():
     mock_self_reporting_api = MagicMock(spec=AsyncSelfReportingAPI)
