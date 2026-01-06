@@ -1,7 +1,6 @@
-import anyio
 import os
 from tollbit import currencies, licences, content_formats, use_content
-from anyio import create_memory_object_stream, create_task_group
+from anyio import create_memory_object_stream, create_task_group, run
 from anyio.streams.memory import MemoryObjectSendStream, MemoryObjectReceiveStream
 from dataclasses import dataclass
 from tollbit.use_content.client import AsyncUseContentClient
@@ -85,4 +84,4 @@ async def main():
         await send_stream.aclose()
 
 
-anyio.run(main)
+run(main)
