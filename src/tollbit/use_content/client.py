@@ -43,10 +43,10 @@ def create_client(
 def create_async_client(
     secret_key: str,
     user_agent: str,
-) -> AysncUseContentClient:
+) -> AsyncUseContentClient:
     env = env_from_vars()
 
-    return AysncUseContentClient(
+    return AsyncUseContentClient(
         token_api=AsyncTokenAPI(
             api_key=secret_key,
             user_agent=user_agent,
@@ -59,7 +59,7 @@ def create_async_client(
     )
 
 
-class AysncUseContentClient:
+class AsyncUseContentClient:
     content_retrieval_api: AsyncContentRetrievalAPI
     token_api: AsyncTokenAPI
 
