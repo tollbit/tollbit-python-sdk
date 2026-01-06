@@ -1,6 +1,7 @@
 import pytest
 from tollbit.use_content.client import AsyncUseContentClient
 from tollbit._apis.token_api import AsyncTokenAPI
+from tollbit._apis.content_api import AsyncContentAPI
 from tollbit._apis.content_retrieval_api import AsyncContentRetrievalAPI
 from unittest.mock import AsyncMock, MagicMock
 from tollbit.tokens import TollbitToken
@@ -29,7 +30,9 @@ async def test_get_sanctioned_content_async():
     )
 
     client = AsyncUseContentClient(
-        token_api=mock_token_api, content_retrieval_api=mock_content_retrieval_api
+        token_api=mock_token_api,
+        content_retrieval_api=mock_content_retrieval_api,
+        content_api=AsyncMock(spec=AsyncContentAPI),
     )
     result = await client.get_sanctioned_content(
         url=fake_content_url,
@@ -70,7 +73,9 @@ async def test_get_sanctioned_content_with_html_async():
     )
 
     client = AsyncUseContentClient(
-        token_api=mock_token_api, content_retrieval_api=mock_content_retrieval_api
+        token_api=mock_token_api,
+        content_api=AsyncMock(spec=AsyncContentAPI),
+        content_retrieval_api=mock_content_retrieval_api,
     )
     result = await client.get_sanctioned_content(
         url=fake_content_url,

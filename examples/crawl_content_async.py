@@ -5,7 +5,6 @@
 from tollbit import crawl_content
 from tollbit import content_formats
 import os
-import anyio
 from dataclasses import dataclass
 from anyio import create_memory_object_stream, create_task_group, run
 from anyio.streams.memory import MemoryObjectSendStream, MemoryObjectReceiveStream
