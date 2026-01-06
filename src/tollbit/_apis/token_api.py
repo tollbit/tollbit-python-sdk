@@ -94,6 +94,7 @@ class AsyncTokenAPI:
 class TokenAPI:
     def __init__(self, api_key: str, user_agent: str, env: Environment):
         self._env = env
+        self.user_agent = user_agent
         self._async_token_api = AsyncTokenAPI(
             api_key=api_key,
             user_agent=user_agent,
