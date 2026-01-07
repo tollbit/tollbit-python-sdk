@@ -1,5 +1,5 @@
 import os
-from tollbit import currencies, licences, content_formats, use_content
+from tollbit import currencies, licenses, content_formats, use_content
 from anyio import create_memory_object_stream, create_task_group, run
 from anyio.streams.memory import MemoryObjectSendStream, MemoryObjectReceiveStream
 from dataclasses import dataclass
@@ -23,7 +23,7 @@ async def run_get_html(
             url="https://pioneervalleygazette.com/daydream",
             max_price_micros=11000000,
             currency=currencies.USD,
-            license_type=licences.types.ON_DEMAND_LICENSE,
+            license_type=licenses.types.ON_DEMAND_LICENSE,
             format=content_formats.HTML,
         )
         await send_stream.send(DataResult("html", data))
@@ -37,7 +37,7 @@ async def run_get_markdown(
             url="https://pioneervalleygazette.com/daydream",
             max_price_micros=11000000,
             currency=currencies.USD,
-            license_type=licences.types.ON_DEMAND_LICENSE,
+            license_type=licenses.types.ON_DEMAND_LICENSE,
             format=content_formats.MARKDOWN,
         )
         await send_stream.send(DataResult("markdown", data))

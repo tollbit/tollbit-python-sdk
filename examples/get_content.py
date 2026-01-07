@@ -1,7 +1,7 @@
 # In this example, we demonstrate how to use the Tollbit Python SDK
 # to get content for a specific URL.
 from tollbit import use_content
-from tollbit import licences
+from tollbit import licenses
 from tollbit import currencies
 from tollbit import content_formats
 from tollbit import use_content
@@ -18,7 +18,7 @@ data = client.get_sanctioned_content(
     url="https://pioneervalleygazette.com/daydream",
     max_price_micros=11000000,
     currency=currencies.USD,
-    license_type=licences.types.ON_DEMAND_LICENSE,
+    license_type=licenses.types.ON_DEMAND_LICENSE,
 )
 print("Markdown data:")
 print(f"data.content.header: {data.content.header}")
@@ -43,7 +43,7 @@ data = client.get_sanctioned_content(
     url="https://pioneervalleygazette.com/daydream",
     max_price_micros=11000000,
     currency=currencies.USD,
-    license_type=licences.types.ON_DEMAND_LICENSE,
+    license_type=licenses.types.ON_DEMAND_LICENSE,
     format=content_formats.HTML,
 )
 print("HTML data:")
@@ -56,6 +56,6 @@ print(f"data.content.footer: {data.content.footer}")
 #     url="https://pioneervalleygazette.com/daydream",
 #     max_price_micros=11000000,
 #     currency="USD",
-#     license_type=licences.CUSTOM_LICENSE
+#     license_type=licenses.types.CUSTOM_LICENSE
 #     license_id="<LICENSE_ID>"
 # )

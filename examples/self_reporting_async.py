@@ -4,7 +4,7 @@
 
 from tollbit import self_reporting
 from tollbit.self_reporting import Usage, TransactionBlock, AsyncSelfReportingClient
-from tollbit import licences
+from tollbit import licenses
 from tollbit import use_content
 import os
 from dataclasses import dataclass
@@ -117,9 +117,9 @@ async def main():
             self_reporting.usage(
                 url="https://pioneervalleygazette.com/daydream",
                 times_used=1,
-                license_permissions=[licences.permissions.LICENSE_PERMISSION_PARTIAL_USE],
+                license_permissions=[licenses.permissions.LICENSE_PERMISSION_PARTIAL_USE],
                 license_id=daydream_license.id,
-                license_type=licences.types.ON_DEMAND_LICENSE,
+                license_type=licenses.types.ON_DEMAND_LICENSE,
             ),
         )
         tg.start_soon(
@@ -128,9 +128,9 @@ async def main():
             self_reporting.usage(
                 url="https://pioneervalleygazette.com/sunset",
                 times_used=20,
-                license_permissions=[licences.permissions.LICENSE_PERMISSION_PARTIAL_USE],
+                license_permissions=[licenses.permissions.LICENSE_PERMISSION_PARTIAL_USE],
                 license_id=sunset_license.id,
-                license_type=licences.types.ON_DEMAND_LICENSE,
+                license_type=licenses.types.ON_DEMAND_LICENSE,
             ),
         )
         tg.start_soon(
@@ -139,9 +139,9 @@ async def main():
             self_reporting.usage(
                 url="https://pioneervalleygazette.com/frog",
                 times_used=5,
-                license_permissions=[licences.permissions.LICENSE_PERMISSION_PARTIAL_USE],
+                license_permissions=[licenses.permissions.LICENSE_PERMISSION_PARTIAL_USE],
                 license_id=frog_license.id,
-                license_type=licences.types.ON_DEMAND_LICENSE,
+                license_type=licenses.types.ON_DEMAND_LICENSE,
             ),
         )
 

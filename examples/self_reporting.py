@@ -3,7 +3,7 @@
 # and you want to report that usage to Tollbit for billing purposes.
 
 from tollbit import self_reporting
-from tollbit import licences
+from tollbit import licenses
 from tollbit import use_content
 import os
 
@@ -56,18 +56,18 @@ usages.append(
     self_reporting.usage(
         url="https://pioneervalleygazette.com/daydream",
         times_used=1,
-        license_permissions=[licences.permissions.LICENSE_PERMISSION_PARTIAL_USE],
+        license_permissions=[licenses.permissions.LICENSE_PERMISSION_PARTIAL_USE],
         license_id=daydream_license.id,
-        license_type=licences.types.ON_DEMAND_LICENSE,
+        license_type=licenses.types.ON_DEMAND_LICENSE,
     )
 )
 usages.append(
     self_reporting.usage(
         url="https://pioneervalleygazette.com/sunset",
         times_used=2,
-        license_permissions=[licences.permissions.LICENSE_PERMISSION_PARTIAL_USE],
+        license_permissions=[licenses.permissions.LICENSE_PERMISSION_PARTIAL_USE],
         license_id=sunset_license.id,
-        license_type=licences.types.ON_DEMAND_FULL_USE_LICENSE,
+        license_type=licenses.types.ON_DEMAND_FULL_USE_LICENSE,
         metadata={"another_key": "another_value"},
     )
 )

@@ -188,7 +188,7 @@ For more examples please see [examples/get_rates_async.py](examples/get_rates_as
 
 ```python
 from tollbit import use_content
-from tollbit import licences
+from tollbit import licenses
 from tollbit import currencies
 
 client = use_content.create_client(
@@ -200,7 +200,7 @@ data = client.get_sanctioned_content(
     url="https://pioneervalleygazette.com/daydream",
     max_price_micros=11000000,
     currency=currencies.USD,
-    license_type=licences.types.ON_DEMAND_LICENSE
+    license_type=licenses.types.ON_DEMAND_LICENSE
 )
 
 print(data.content.main)
@@ -212,7 +212,7 @@ For more examples please see [examples/get_content.py](examples/get_content.py).
 
 ```python
 from tollbit import use_content
-from tollbit import licences
+from tollbit import licenses
 from tollbit import currencies
 
 client = use_content.create_async_client(
@@ -224,7 +224,7 @@ data = await client.get_sanctioned_content(
     url="https://pioneervalleygazette.com/daydream",
     max_price_micros=11000000,
     currency=currencies.USD,
-    license_type=licences.types.ON_DEMAND_LICENSE
+    license_type=licenses.types.ON_DEMAND_LICENSE
 )
 
 print(data.content.main)
@@ -238,7 +238,7 @@ For more examples please see [examples/get_content_async.py](examples/get_conten
 
 ```python
 from tollbit import self_reporting
-from tollbit import licences
+from tollbit import licenses
 from tollbit import use_content
 
 reporting_client = self_reporting.create_client(
@@ -251,9 +251,9 @@ reporting_client = self_reporting.create_client(
 usages = [self_reporting.usage(
         url="https://pioneervalleygazette.com/daydream",
         times_used=1,
-        license_permissions=[licences.permissions.LICENSE_PERMISSION_PARTIAL_USE],
-        license_id="licences-id-123",
-        license_type=licences.types.ON_DEMAND_LICENSE,
+        license_permissions=[licenses.permissions.LICENSE_PERMISSION_PARTIAL_USE],
+        license_id="licenses-id-123",
+        license_type=licenses.types.ON_DEMAND_LICENSE,
     )]
 
 # Create an idempotent transaction block
@@ -269,7 +269,7 @@ For more examples please see [examples/self_reporting.py](examples/self_reportin
 
 ```python
 from tollbit import self_reporting
-from tollbit import licences
+from tollbit import licenses
 from tollbit import use_content
 
 reporting_client = self_reporting.create_async_client(
@@ -282,9 +282,9 @@ reporting_client = self_reporting.create_async_client(
 usages = [self_reporting.usage(
         url="https://pioneervalleygazette.com/daydream",
         times_used=1,
-        license_permissions=[licences.permissions.LICENSE_PERMISSION_PARTIAL_USE],
-        license_id="licences-id-123",
-        license_type=licences.types.ON_DEMAND_LICENSE,
+        license_permissions=[licenses.permissions.LICENSE_PERMISSION_PARTIAL_USE],
+        license_id="licenses-id-123",
+        license_type=licenses.types.ON_DEMAND_LICENSE,
     )]
 
 # Create an idempotent transaction block

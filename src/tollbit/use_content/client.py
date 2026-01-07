@@ -11,7 +11,7 @@ from tollbit._apis.models import (
 )
 from tollbit.content_formats import Format
 from tollbit.currencies import Currency
-from tollbit.licences.types import LicenceType
+from tollbit.licenses.types import LicenseType
 from pydantic import AnyUrl
 from tollbit._environment import env_from_vars
 
@@ -84,7 +84,7 @@ class AsyncUseContentClient:
         url: str,
         max_price_micros: int,
         currency: Currency,
-        license_type: LicenceType,
+        license_type: LicenseType,
         license_id: str | None = None,
         format: Format = Format.markdown,
     ) -> GetContentResponse:
@@ -138,7 +138,7 @@ class UseContentClient:
         url: str,
         max_price_micros: int,
         currency: Currency,
-        license_type: LicenceType,
+        license_type: LicenseType,
         license_id: str | None = None,
         format: Format = Format.markdown,
     ) -> GetContentResponse:
