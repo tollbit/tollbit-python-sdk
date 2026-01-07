@@ -149,7 +149,7 @@ pages = await client.list_content_catalog(
 )
 ```
 
-For more examples please see [examples/get_rates_async.py](examples/get_content_async.py)
+For more examples please see [examples/crawl_content_async.py](examples/crawl_content_async.py)
 
 
 ## Checking Rates
