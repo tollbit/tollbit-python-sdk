@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0 - 2026-01-07
+
+### Added
+
+- Added async clients
+
+### Changed
+
+- Renamed module `licences` to `licenses` to use correct spelling
+
 ## 0.4.0 - 2026-01-05
 
 ### Added
