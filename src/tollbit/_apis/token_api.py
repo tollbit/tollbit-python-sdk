@@ -114,7 +114,7 @@ class TokenAPI:
         )
 
 
-def _handle_response(response: requests.Response, success_model: Type[T]) -> T:
+def _handle_response(response: httpx.Response, success_model: Type[T]) -> T:
     if response.status_code != 200:
         err = ApiError.from_response(response)
         logger.error(str(err))
