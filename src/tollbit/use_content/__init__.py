@@ -1,1 +1,1 @@
-from .client import create_client, create_async_client
+from .client import create_client, create_async_client, AsyncUseContentClient, UseContentClient

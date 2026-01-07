@@ -1,6 +1,6 @@
 from __future__ import annotations
 from tollbit.tokens import TollbitToken
-from tollbit._apis.content_api import ContentAPI
+from tollbit._apis.content_api import ContentAPI, AsyncContentAPI
 from tollbit._apis.token_api import TokenAPI, AsyncTokenAPI
 from tollbit._apis.content_retrieval_api import ContentRetrievalAPI, AsyncContentRetrievalAPI
 from urllib.parse import urlparse
@@ -43,11 +43,16 @@ def create_client(
 def create_async_client(
     secret_key: str,
     user_agent: str,
-) -> AysncUseContentClient:
+) -> AsyncUseContentClient:
     env = env_from_vars()
 
-    return AysncUseContentClient(
+    return AsyncUseContentClient(
         token_api=AsyncTokenAPI(
+            api_key=secret_key,
+            user_agent=user_agent,
+            env=env,
+        ),
+        content_api=AsyncContentAPI(
             api_key=secret_key,
             user_agent=user_agent,
             env=env,
@@ -59,16 +64,19 @@ def create_async_client(
     )
 
 
-class AysncUseContentClient:
+class AsyncUseContentClient:
     content_retrieval_api: AsyncContentRetrievalAPI
     token_api: AsyncTokenAPI
+    content_api: AsyncContentAPI
 
     def __init__(
         self,
         token_api: AsyncTokenAPI,
+        content_api: AsyncContentAPI,
         content_retrieval_api: AsyncContentRetrievalAPI,
     ):
         self.token_api = token_api
+        self.content_api = content_api
         self.content_retrieval_api = content_retrieval_api
 
     async def get_sanctioned_content(
@@ -100,6 +108,10 @@ class AysncUseContentClient:
         )
 
         return response
+
+    async def get_rate(self, url: str) -> list[DeveloperRateResponse]:
+        parsed_url = urlparse(url)
+        return await self.content_api.get_rate(f"{parsed_url.netloc}{parsed_url.path}")
 
 
 class UseContentClient:

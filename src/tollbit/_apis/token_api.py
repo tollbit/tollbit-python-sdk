@@ -14,6 +14,7 @@ from tollbit._apis.errors import (
     BadRequestError,
     ServerError,
     UnknownError,
+    ApiError,
 )
 from tollbit._environment import Environment
 from tollbit._logging import get_sdk_logger
@@ -70,6 +71,8 @@ class AsyncTokenAPI:
             logger.error(f"Connection error occurred: {e}")
             raise ServerError("Unable to connect to the Tollbit server") from e
 
+        return _handle_response(response, CreateCrawlAccessTokenResponse)
+
     async def _post_model(
         self, path: str, headers: dict[str, str], body: BaseModel
     ) -> httpx.Response:
@@ -90,6 +93,8 @@ class AsyncTokenAPI:
 
 class TokenAPI:
     def __init__(self, api_key: str, user_agent: str, env: Environment):
+        self._env = env
+        self.user_agent = user_agent
         self._async_token_api = AsyncTokenAPI(
             api_key=api_key,
             user_agent=user_agent,
@@ -99,28 +104,21 @@ class TokenAPI:
     def get_content_token(
         self, req: CreateSubdomainAccessTokenRequest
     ) -> CreateSubdomainAccessTokenResponse:
-        return anyio.run(self._async_token_api.get_content_token, req)
+        return anyio.run(
+            self._async_token_api.get_content_token, req, backend=self._env.anyio_backend
+        )
 
     def get_crawl_token(self, req: CreateCrawlAccessTokenRequest) -> CreateCrawlAccessTokenResponse:
-        return anyio.run(self._async_token_api.get_crawl_token, req)
+        return anyio.run(
+            self._async_token_api.get_crawl_token, req, backend=self._env.anyio_backend
+        )
 
 
 def _handle_response(response: requests.Response, success_model: Type[T]) -> T:
-    match response.status_code:
-        case 200:
-            result: T = TypeAdapter(success_model).validate_python(response.json())
-            return result
-        case 401:
-            logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-            raise UnauthorizedError("Unauthorized: Invalid API key")
-        case 400:
-            logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-            raise BadRequestError(
-                "Bad Request: Check your request details; most likely an invalid domain."
-            )
-        case code if 500 <= code <= 599:
-            logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-            raise ServerError(f"An error occurred on Tollbit's servers: {response.status_code}")
-        case _:
-            logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-            raise UnknownError(f"An unknown error occurred: {response.status_code}")
+    if response.status_code != 200:
+        err = ApiError.from_response(response)
+        logger.error(str(err))
+        raise err
+
+    result: T = TypeAdapter(success_model).validate_python(response.json())
+    return result

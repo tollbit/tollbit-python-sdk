@@ -92,7 +92,7 @@ Tollbit gives your agents reliable access to services:
 
 # tollbit-python-sdk
 
-Tollbit's python SDK for interacting with Tollbit's services. Pull this directly into your code to make requests; no need to write your own clients. 
+Tollbit's python SDK for interacting with Tollbit's services. Pull this directly into your code to make requests; no need to write your own clients. The SDK supports both synchronous and asynchronous calls.
 
 The SDK currently supports the following operations:
 
@@ -107,6 +107,8 @@ pip install tollbit-python-sdk
 ```
 
 ## Indexing Content
+
+### Synchronous
 
 ```python
 from tollbit import crawl_content
@@ -130,7 +132,29 @@ for page in page:
 
 For more examples please see [examples/crawl_content.py](examples/crawl_content.py)
 
+### Asynchronous
+
+```python
+from tollbit import crawl_content
+from tollbit import content_formats
+
+client = crawl_content.create_async_client(
+    secret_key="YOUR API KEY",
+    user_agent="YOUR USER AGENT"
+)
+
+pages = await client.list_content_catalog(
+    url="https://pioneervalleygazette.com",
+    page_size=5,
+)
+```
+
+For more examples please see [examples/get_rates_async.py](examples/get_content_async.py)
+
+
 ## Checking Rates
+
+### Synchronous
 
 ```python
 from tollbit import use_content
@@ -144,7 +168,23 @@ rate_info = client.get_rate(url="https://pioneervalleygazette.com/daydream")
 
 For more examples please see [examples/get_rates.py](examples/get_rates.py).
 
+### Asynchronous
+
+```python
+from tollbit import use_content
+
+client = use_content.create_async_client(
+    secret_key="YOUR API KEY", 
+    user_agent="YOUR USER AGENT"
+)
+rate_info = await client.get_rate(url="https://pioneervalleygazette.com/daydream")
+```
+
+For more examples please see [examples/get_rates_async.py](examples/get_rates_async.py)
+
 ## Accessing sanctioned content
+
+### Synchronous
 
 ```python
 from tollbit import use_content
@@ -168,7 +208,33 @@ print(data.content.main)
 
 For more examples please see [examples/get_content.py](examples/get_content.py).
 
+### Asynchronous
+
+```python
+from tollbit import use_content
+from tollbit import licences
+from tollbit import currencies
+
+client = use_content.create_async_client(
+    secret_key="YOUR API KEY", 
+    user_agent="YOUR USER AGENT"
+)
+
+data = await client.get_sanctioned_content(
+    url="https://pioneervalleygazette.com/daydream",
+    max_price_micros=11000000,
+    currency=currencies.USD,
+    license_type=licences.types.ON_DEMAND_LICENSE
+)
+
+print(data.content.main)
+```
+
+For more examples please see [examples/get_content_async.py](examples/get_content_async.py).
+
 ## Self reporting usage
+
+### Synchronous
 
 ```python
 from tollbit import self_reporting
@@ -198,6 +264,70 @@ result = reporting_client.report(transaction_block)
 ```
 
 For more examples please see [examples/self_reporting.py](examples/self_reporting.py)
+
+### Asynchronous
+
+```python
+from tollbit import self_reporting
+from tollbit import licences
+from tollbit import use_content
+
+reporting_client = self_reporting.create_async_client(
+    secret_key="YOUR API KEY", 
+    user_agent="YOUR USER AGENT"
+)
+
+
+# Create an array of your usages
+usages = [self_reporting.usage(
+        url="https://pioneervalleygazette.com/daydream",
+        times_used=1,
+        license_permissions=[licences.permissions.LICENSE_PERMISSION_PARTIAL_USE],
+        license_id="licences-id-123",
+        license_type=licences.types.ON_DEMAND_LICENSE,
+    )]
+
+# Create an idempotent transaction block
+transaction_block = reporting_client.create_transaction_block(usages)
+
+# Report usages
+result = await reporting_client.report(transaction_block)
+```
+
+For more examples please see [examples/self_reporting_async.py](examples/self_reporting_async.py)
+
+## Search
+
+### Synchronous
+
+```python
+from tollbit import search
+
+search_client = search.create_client(
+    secret_key="YOUR API KEY", 
+    user_agent="YOUR USER AGENT"
+)
+
+results = client.search(q="DIY home projects for millenials")
+```
+
+For more examples please see [examples/search.py](examples/search.py)
+
+### Asynchronous
+
+```python
+from tollbit import search
+
+search_client = search.create_async_client(
+    secret_key="YOUR API KEY", 
+    user_agent="YOUR USER AGENT"
+)
+
+results = await client.search(q="DIY home projects for millenials")
+```
+
+For more examples please see [examples/search_async.py](examples/search_async.py)
+
 
 ## Issues
 We have disabled issues for the time being. Please reach out directly to tollbit

@@ -1,11 +1,16 @@
 from unittest.mock import Mock
+import httpx
+import respx
 import requests
 import pytest
 import pprint
 import difflib
+import json
 
 
 # --- Mocks and Fixtures ---
+
+
 class MockResponse:
     def __init__(self, json_obj=None, problem_json_obj=None, body_text=None, status_code=200):
         self._json_obj = json_obj or []
@@ -62,6 +67,55 @@ def mock_server_down(monkeypatch):
         raise requests.ConnectionError("Unable to connect to the server")
 
     monkeypatch.setattr(requests, "post", _raise_connection_error)
+
+
+@pytest.fixture()
+def mock_httpx_server_down(respx_mock):
+    def _mock_httpx_server_down(url: str):
+        respx_mock.post(url).mock(side_effect=httpx.RequestError("Unable to connect to the server"))
+        respx_mock.get(url).mock(side_effect=httpx.RequestError("Unable to connect to the server"))
+
+    return _mock_httpx_server_down
+
+
+def assert_request_made(route: respx.Route) -> httpx.Request | None:
+    if not route.called:
+        raise AssertionError("Expected request to have been made, but it was not.")
+    return route.calls[0].request
+
+
+def assert_httpx_request_headers(request: httpx.Request, expected_headers: dict[str, str]):
+    actual_headers = request.headers
+
+    errors = []
+
+    for key, expected_value in expected_headers.items():
+        actual_value = actual_headers.get(key)
+        if actual_value != expected_value:
+            errors.append(
+                f"Header '{key}' mismatch:\nExpected: {expected_value}\nActual:   {actual_value}"
+            )
+
+    if errors:
+        raise AssertionError("\n".join(errors))
+
+
+def assert_httpx_request_json_body(request: httpx.Request, expected_json: dict):
+    raw_json = request.content
+    request_body_json = json.loads(raw_json.decode("utf-8"))
+
+    if request_body_json != expected_json:
+        expected_str = pprint.pformat(expected_json)
+        actual_str = pprint.pformat(request_body_json)
+        diff = "\n".join(
+            difflib.unified_diff(
+                expected_str.splitlines(),
+                actual_str.splitlines(),
+                fromfile="expected",
+                tofile="actual",
+            )
+        )
+        raise AssertionError(f"JSON body mismatch:\n{diff}")
 
 
 def assert_json_request_called_with(mock_post, expected_url, expected_headers, expected_json):
