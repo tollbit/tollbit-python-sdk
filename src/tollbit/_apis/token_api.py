@@ -1,4 +1,5 @@
 import requests
+import httpx
 from pydantic import BaseModel, TypeAdapter
 from typing import Type, TypeVar, Any
 from tollbit._environment import Environment
@@ -13,9 +14,11 @@ from tollbit._apis.errors import (
     BadRequestError,
     ServerError,
     UnknownError,
+    ApiError,
 )
 from tollbit._environment import Environment
 from tollbit._logging import get_sdk_logger
+import anyio
 
 CREATE_CONTENT_TOKEN_PATH = "/dev/v2/tokens/content"
 CREATE_CRAWL_TOKEN_PATH = "/dev/v2/tokens/crawl"
@@ -26,13 +29,13 @@ logger = get_sdk_logger(__name__)
 T = TypeVar("T", bound=BaseModel)
 
 
-class TokenAPI:
+class AsyncTokenAPI:
     def __init__(self, api_key: str, user_agent: str, env: Environment):
         self.api_key = api_key
         self.user_agent = user_agent
         self._base_url = env.developer_api_base_url
 
-    def get_content_token(
+    async def get_content_token(
         self, req: CreateSubdomainAccessTokenRequest
     ) -> CreateSubdomainAccessTokenResponse:
         logger.debug(
@@ -44,15 +47,16 @@ class TokenAPI:
             },
         )
         try:
-            response = self._post_model(CREATE_CONTENT_TOKEN_PATH, self._headers(), req)
-        except requests.ConnectionError as e:
+            response = await self._post_model(CREATE_CONTENT_TOKEN_PATH, self._headers(), req)
+        except httpx.RequestError as e:
             logger.error(f"Connection error occurred: {e}")
             raise ServerError("Unable to connect to the Tollbit server") from e
 
         return _handle_response(response, CreateSubdomainAccessTokenResponse)
 
-    def get_crawl_token(self, req: CreateCrawlAccessTokenRequest) -> CreateCrawlAccessTokenResponse:
-
+    async def get_crawl_token(
+        self, req: CreateCrawlAccessTokenRequest
+    ) -> CreateCrawlAccessTokenResponse:
         logger.debug(
             "Requesting crawl access token...",
             extra={
@@ -62,16 +66,21 @@ class TokenAPI:
             },
         )
         try:
-            response = self._post_model(CREATE_CRAWL_TOKEN_PATH, self._headers(), req)
-        except requests.ConnectionError as e:
+            response = await self._post_model(CREATE_CRAWL_TOKEN_PATH, self._headers(), req)
+        except httpx.RequestError as e:
             logger.error(f"Connection error occurred: {e}")
             raise ServerError("Unable to connect to the Tollbit server") from e
 
         return _handle_response(response, CreateCrawlAccessTokenResponse)
 
-    def _post_model(self, path: str, headers: dict[str, str], body: BaseModel) -> requests.Response:
+    async def _post_model(
+        self, path: str, headers: dict[str, str], body: BaseModel
+    ) -> httpx.Response:
         payload = body.model_dump(mode="json", by_alias=True, exclude_none=True)
-        response = requests.post(f"{self._base_url}{path}", headers=headers, json=payload)
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url=f"{self._base_url}{path}", headers=headers, json=payload
+            )
         return response
 
     def _headers(self) -> dict[str, str]:
@@ -82,22 +91,34 @@ class TokenAPI:
         }
 
 
+class TokenAPI:
+    def __init__(self, api_key: str, user_agent: str, env: Environment):
+        self._env = env
+        self.user_agent = user_agent
+        self._async_token_api = AsyncTokenAPI(
+            api_key=api_key,
+            user_agent=user_agent,
+            env=env,
+        )
+
+    def get_content_token(
+        self, req: CreateSubdomainAccessTokenRequest
+    ) -> CreateSubdomainAccessTokenResponse:
+        return anyio.run(
+            self._async_token_api.get_content_token, req, backend=self._env.anyio_backend
+        )
+
+    def get_crawl_token(self, req: CreateCrawlAccessTokenRequest) -> CreateCrawlAccessTokenResponse:
+        return anyio.run(
+            self._async_token_api.get_crawl_token, req, backend=self._env.anyio_backend
+        )
+
+
 def _handle_response(response: requests.Response, success_model: Type[T]) -> T:
-    match response.status_code:
-        case 200:
-            result: T = TypeAdapter(success_model).validate_python(response.json())
-            return result
-        case 401:
-            logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-            raise UnauthorizedError("Unauthorized: Invalid API key")
-        case 400:
-            logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-            raise BadRequestError(
-                "Bad Request: Check your request details; most likely an invalid domain."
-            )
-        case code if 500 <= code <= 599:
-            logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-            raise ServerError(f"An error occurred on Tollbit's servers: {response.status_code}")
-        case _:
-            logger.error(f"HTTP ERROR {response.status_code}: {response.text}")
-            raise UnknownError(f"An unknown error occurred: {response.status_code}")
+    if response.status_code != 200:
+        err = ApiError.from_response(response)
+        logger.error(str(err))
+        raise err
+
+    result: T = TypeAdapter(success_model).validate_python(response.json())
+    return result

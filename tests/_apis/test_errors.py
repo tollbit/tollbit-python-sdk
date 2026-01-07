@@ -1,20 +1,21 @@
 import pytest
 from tollbit._apis.errors import ApiError
 from tollbit._apis.models import ProblemJSON
-from requests import Response
+from httpx import Response
 
 
 def test_api_error_parse_with_problem_json():
-    response = Response()
-    response.status_code = 400
-    response._content = b"""{
-        "status": 400,
-        "type": "about:blank",
-        "title": "Bad Request",
-        "detail": "You forgot to do the thing",
-        "instance": "/path/to/resource"
-    }"""
-    response.headers["Content-Type"] = "application/problem+json"
+    response = Response(
+        400,
+        json={
+            "status": 400,
+            "type": "about:blank",
+            "title": "Bad Request",
+            "detail": "You forgot to do the thing",
+            "instance": "/path/to/resource",
+        },
+        headers={"Content-Type": "application/problem+json"},
+    )
 
     error = ApiError.from_response(response)
     assert error.status_code == 400
@@ -28,10 +29,7 @@ def test_api_error_parse_with_problem_json():
 
 
 def test_api_error_str_without_problem_json():
-    response = Response()
-    response.status_code = 500
-    response._content = b"Internal Server Error"
-    response.headers["Content-Type"] = "text/plain"
+    response = Response(500, text="Internal Server Error")
 
     error = ApiError.from_response(response)
     assert error.status_code == 500

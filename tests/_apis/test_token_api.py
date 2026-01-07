@@ -1,31 +1,29 @@
 import pytest
-import json
-from tollbit._apis.token_api import TokenAPI
+import httpx
+from tollbit._apis.token_api import AsyncTokenAPI
 from tollbit._apis.errors import (
-    UnauthorizedError,
-    BadRequestError,
     ServerError,
-    UnknownError,
+    ApiError,
 )
 from tollbit._apis.models import (
     CreateSubdomainAccessTokenRequest,
     CreateCrawlAccessTokenRequest,
-    Format,
 )
-from tollbit._environment import Environment
-import os
 from test_helpers.mock_response import (
-    MockResponse,
-    patch_requests_post,
-    mock_server_down,
-    assert_json_request_called_with,
+    mock_httpx_server_down,
+    assert_httpx_request_headers,
+    assert_httpx_request_json_body,
+    assert_request_made,
 )
 
 
 # --- Tests for Content Access Token ---
-def test_get_content_token_success(patch_requests_post, test_env):
-    post_mock = patch_requests_post(MockResponse(json_obj={"token": "TOKEN-ABC123"}))
-    client = TokenAPI(api_key="test-key", user_agent="test-agent", env=test_env)
+@pytest.mark.anyio
+async def test_get_content_token_success(respx_mock, test_env):
+    token_route = respx_mock.post(f"{test_env.developer_api_base_url}/dev/v2/tokens/content").mock(
+        return_value=httpx.Response(200, json={"token": "TOKEN-ABC123"})
+    )
+    client = AsyncTokenAPI(api_key="test-key", user_agent="test-agent", env=test_env)
     req = CreateSubdomainAccessTokenRequest(
         url="https://example.com",
         user_agent="test-agent",
@@ -34,17 +32,22 @@ def test_get_content_token_success(patch_requests_post, test_env):
         license_type="ON_DEMAND_LICENSE",
         license_cuid="",
     )
-    response = client.get_content_token(req)
+    response = await client.get_content_token(req)
     assert response.token == "TOKEN-ABC123"
-    assert_json_request_called_with(
-        post_mock,
-        expected_url=f"{test_env.developer_api_base_url}/dev/v2/tokens/content",
-        expected_headers={
+
+    raw_request = assert_request_made(token_route)
+    assert_httpx_request_headers(
+        raw_request,
+        {
             "User-Agent": "test-agent",
             "TollbitKey": "test-key",
             "Content-Type": "application/json",
         },
-        expected_json={
+    )
+
+    assert_httpx_request_json_body(
+        raw_request,
+        {
             "url": "https://example.com/",
             "userAgent": "test-agent",
             "maxPriceMicros": 1000000,
@@ -55,10 +58,23 @@ def test_get_content_token_success(patch_requests_post, test_env):
     )
 
 
-def test_get_content_token_bad_api_key(patch_requests_post, test_env):
-    patch_requests_post(MockResponse(body_text="Invalid API key", status_code=401))
-    client = TokenAPI(api_key="bad-key", user_agent="test-agent", env=test_env)
+@pytest.mark.anyio
+async def test_get_content_token_problem_json_error(respx_mock, test_env):
+    respx_mock.post(f"{test_env.developer_api_base_url}/dev/v2/tokens/content").mock(
+        return_value=httpx.Response(
+            401,
+            headers={"Content-Type": "application/problem+json"},
+            json={
+                "detail": "Invalid API key",
+                "instance": "/dev/v2/tokens/content",
+                "status": 401,
+                "title": "Unauthorized",
+                "type": "about:blank",
+            },
+        )
+    )
 
+    client = AsyncTokenAPI(api_key="bad-key", user_agent="test-agent", env=test_env)
     req = CreateSubdomainAccessTokenRequest(
         url="https://example.com",
         userAgent="test-agent",
@@ -66,37 +82,24 @@ def test_get_content_token_bad_api_key(patch_requests_post, test_env):
         currency="USD",
         licenseType="ON_DEMAND_LICENSE",
         licenseCuid="",
-        format=Format.markdown,
     )
-    with pytest.raises(Exception) as excinfo:
-        client.get_content_token(req)
+    with pytest.raises(ApiError) as excinfo:
+        await client.get_content_token(req)
 
-    assert isinstance(excinfo.value, UnauthorizedError)
-
-
-def test_get_content_token_unauthorized_host(patch_requests_post, test_env):
-    patch_requests_post(MockResponse(body_text="Bad Request", status_code=400))
-
-    client = TokenAPI(api_key="test-key", user_agent="test-agent", env=test_env)
-    req = CreateSubdomainAccessTokenRequest(
-        url="https://nosuchurl.com",
-        userAgent="test-agent",
-        maxPriceMicros=1000000,
-        currency="USD",
-        licenseType="ON_DEMAND_LICENSE",
-        licenseCuid="",
-        format=Format.markdown,
+    error = excinfo.value
+    assert (
+        str(error)
+        == "API Error: (401) Unauthorized - Invalid API key (instance: /dev/v2/tokens/content)"
     )
 
-    with pytest.raises(Exception) as excinfo:
-        client.get_content_token(req)
-    assert isinstance(excinfo.value, BadRequestError)
 
+@pytest.mark.anyio
+async def test_get_content_token_non_problem_json_error(respx_mock, test_env):
+    respx_mock.post(f"{test_env.developer_api_base_url}/dev/v2/tokens/content").mock(
+        return_value=httpx.Response(418, text="Teapots on the attack")
+    )
 
-def test_get_content_token_server_error(patch_requests_post, test_env):
-    patch_requests_post(MockResponse(body_text="Server Error", status_code=500))
-
-    client = TokenAPI(api_key="test-key", user_agent="test-agent", env=test_env)
+    client = AsyncTokenAPI(api_key="bad-key", user_agent="test-agent", env=test_env)
     req = CreateSubdomainAccessTokenRequest(
         url="https://example.com",
         userAgent="test-agent",
@@ -104,17 +107,19 @@ def test_get_content_token_server_error(patch_requests_post, test_env):
         currency="USD",
         licenseType="ON_DEMAND_LICENSE",
         licenseCuid="",
-        format=Format.markdown,
     )
-    with pytest.raises(Exception) as excinfo:
-        client.get_content_token(req)
-    assert isinstance(excinfo.value, ServerError)
+    with pytest.raises(ApiError) as excinfo:
+        await client.get_content_token(req)
+
+    error = excinfo.value
+    assert str(error) == "API Error: (418) Teapots on the attack"
 
 
-def test_get_content_token_unknown_error(patch_requests_post, test_env):
-    patch_requests_post(MockResponse(body_text="Teapots on the attack", status_code=418))
+@pytest.mark.anyio
+async def test_get_content_token_unreachable(mock_httpx_server_down, test_env):
+    mock_httpx_server_down(f"{test_env.developer_api_base_url}/dev/v2/tokens/content")
 
-    client = TokenAPI(api_key="test-key", user_agent="test-agent", env=test_env)
+    client = AsyncTokenAPI(api_key="test-key", user_agent="test-agent", env=test_env)
     req = CreateSubdomainAccessTokenRequest(
         url="https://example.com",
         userAgent="test-agent",
@@ -122,113 +127,111 @@ def test_get_content_token_unknown_error(patch_requests_post, test_env):
         currency="USD",
         licenseType="ON_DEMAND_LICENSE",
         licenseCuid="",
-        format=Format.markdown,
-    )
-    with pytest.raises(Exception) as excinfo:
-        client.get_content_token(req)
-    assert isinstance(excinfo.value, UnknownError)
-
-
-def test_get_content_token_unreachable(mock_server_down, test_env):
-    client = TokenAPI(api_key="test-key", user_agent="test-agent", env=test_env)
-    req = CreateSubdomainAccessTokenRequest(
-        url="https://example.com",
-        userAgent="test-agent",
-        maxPriceMicros=1000000,
-        currency="USD",
-        licenseType="ON_DEMAND_LICENSE",
-        licenseCuid="",
-        format=Format.markdown,
     )
 
-    with pytest.raises(Exception) as excinfo:
-        client.get_content_token(req)
+    with pytest.raises(ServerError) as excinfo:
+        await client.get_content_token(req)
 
     assert isinstance(excinfo.value, ServerError)
 
 
-# --- Tests for Crawl Access Token ---
+# # --- Tests for Crawl Access Token ---
 
 
-def test_get_crawl_token_success(patch_requests_post, test_env):
-    patch_requests_post(MockResponse(json_obj={"token": "TOKEN-ABC123"}))
-    client = TokenAPI(api_key="test-key", user_agent="test-agent", env=test_env)
+@pytest.mark.anyio
+async def test_get_crawl_token_success(respx_mock, test_env):
+    # patch_requests_post(MockResponse(json_obj={"token": "TOKEN-ABC123"}))
+    token_route = respx_mock.post(f"{test_env.developer_api_base_url}/dev/v2/tokens/crawl").mock(
+        return_value=httpx.Response(200, json={"token": "TOKEN-ABC123"})
+    )
+
+    client = AsyncTokenAPI(api_key="test-key", user_agent="test-agent", env=test_env)
     req = CreateCrawlAccessTokenRequest(
         url="https://example.com",
         userAgent="test-agent",
-        format=Format.markdown,
     )
-    response = client.get_crawl_token(req)
+    response = await client.get_crawl_token(req)
     assert response.token == "TOKEN-ABC123"
 
+    raw_request = assert_request_made(token_route)
+    assert_httpx_request_headers(
+        raw_request,
+        {
+            "User-Agent": "test-agent",
+            "TollbitKey": "test-key",
+            "Content-Type": "application/json",
+        },
+    )
 
-def test_get_crawl_token_bad_api_key(patch_requests_post, test_env):
-    patch_requests_post(MockResponse(body_text="Invalid API key", status_code=401))
-    client = TokenAPI(api_key="bad-key", user_agent="test-agent", env=test_env)
+    assert_httpx_request_json_body(
+        raw_request,
+        {
+            "url": "https://example.com/",
+            "userAgent": "test-agent",
+        },
+    )
 
+
+@pytest.mark.anyio
+async def test_get_crawl_token_problem_json_error(respx_mock, test_env):
+    respx_mock.post(f"{test_env.developer_api_base_url}/dev/v2/tokens/crawl").mock(
+        return_value=httpx.Response(
+            401,
+            headers={"Content-Type": "application/problem+json"},
+            json={
+                "detail": "Invalid API key",
+                "instance": "/dev/v2/tokens/content",
+                "status": 401,
+                "title": "Unauthorized",
+                "type": "about:blank",
+            },
+        )
+    )
+
+    client = AsyncTokenAPI(api_key="bad-key", user_agent="test-agent", env=test_env)
     req = CreateCrawlAccessTokenRequest(
         url="https://example.com",
         userAgent="test-agent",
-        format=Format.markdown,
     )
-    with pytest.raises(Exception) as excinfo:
-        client.get_crawl_token(req)
+    with pytest.raises(ApiError) as excinfo:
+        await client.get_crawl_token(req)
 
-    assert isinstance(excinfo.value, UnauthorizedError)
-
-
-def test_get_crawl_token_unauthorized_host(patch_requests_post, test_env):
-    patch_requests_post(MockResponse(body_text="Bad Request", status_code=400))
-
-    client = TokenAPI(api_key="test-key", user_agent="test-agent", env=test_env)
-    req = CreateCrawlAccessTokenRequest(
-        url="https://nosuchurl.com",
-        userAgent="test-agent",
-        format=Format.markdown,
+    error = excinfo.value
+    assert (
+        str(error)
+        == "API Error: (401) Unauthorized - Invalid API key (instance: /dev/v2/tokens/content)"
     )
 
-    with pytest.raises(Exception) as excinfo:
-        client.get_crawl_token(req)
-    assert isinstance(excinfo.value, BadRequestError)
 
+@pytest.mark.anyio
+async def test_get_crawl_token_non_problem_json_error(respx_mock, test_env):
+    respx_mock.post(f"{test_env.developer_api_base_url}/dev/v2/tokens/crawl").mock(
+        return_value=httpx.Response(418, text="Teapots on the attack")
+    )
 
-def test_get_crawl_token_server_error(patch_requests_post, test_env):
-    patch_requests_post(MockResponse(body_text="Server Error", status_code=500))
-
-    client = TokenAPI(api_key="test-key", user_agent="test-agent", env=test_env)
+    client = AsyncTokenAPI(api_key="bad-key", user_agent="test-agent", env=test_env)
     req = CreateCrawlAccessTokenRequest(
         url="https://example.com",
         userAgent="test-agent",
-        format=Format.markdown,
     )
-    with pytest.raises(Exception) as excinfo:
-        client.get_crawl_token(req)
-    assert isinstance(excinfo.value, ServerError)
+    with pytest.raises(ApiError) as excinfo:
+        await client.get_crawl_token(req)
+
+    error = excinfo.value
+    assert str(error) == "API Error: (418) Teapots on the attack"
 
 
-def test_get_crawl_token_unknown_error(patch_requests_post, test_env):
-    patch_requests_post(MockResponse(body_text="Teapots on the attack", status_code=418))
+@pytest.mark.anyio
+async def test_get_crawl_token_unreachable(mock_httpx_server_down, test_env):
+    mock_httpx_server_down(f"{test_env.developer_api_base_url}/dev/v2/tokens/crawl")
 
-    client = TokenAPI(api_key="test-key", user_agent="test-agent", env=test_env)
+    client = AsyncTokenAPI(api_key="test-key", user_agent="test-agent", env=test_env)
     req = CreateCrawlAccessTokenRequest(
         url="https://example.com",
         userAgent="test-agent",
-        format=Format.markdown,
-    )
-    with pytest.raises(Exception) as excinfo:
-        client.get_crawl_token(req)
-    assert isinstance(excinfo.value, UnknownError)
-
-
-def test_get_crawl_token_unreachable(mock_server_down, test_env):
-    client = TokenAPI(api_key="test-key", user_agent="test-agent", env=test_env)
-    req = CreateCrawlAccessTokenRequest(
-        url="https://example.com",
-        userAgent="test-agent",
-        format=Format.markdown,
     )
 
-    with pytest.raises(Exception) as excinfo:
-        client.get_crawl_token(req)
+    with pytest.raises(ServerError) as excinfo:
+        await client.get_crawl_token(req)
 
     assert isinstance(excinfo.value, ServerError)

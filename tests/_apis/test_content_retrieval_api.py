@@ -1,21 +1,26 @@
 import pytest
-from tollbit._apis.content_retrieval_api import ContentRetrievalAPI
+import httpx
+from tollbit._apis.content_retrieval_api import AsyncContentRetrievalAPI
 from tollbit._apis.errors import (
     BadRequestError,
     ServerError,
     ApiError,
 )
 from tollbit.tokens import TollbitToken
-import requests
 from tollbit._apis.models import GetContentResponse
 from unittest import mock
-from tollbit.content_formats import Format
-from test_helpers.mock_response import MockResponse, patch_requests_get, mock_server_down
+from tollbit import content_formats
+from test_helpers.mock_response import (
+    assert_request_made,
+    assert_httpx_request_headers,
+    mock_httpx_server_down,
+)
 
 
 # --- Tests ---
 # ======= Get Content Tests =======
-def test_get_content_success(patch_requests_get, test_env):
+@pytest.mark.anyio
+async def test_get_content_success(respx_mock, test_env):
     fake_content = {
         "metadata": {
             "title": "Sample Title",
@@ -43,19 +48,33 @@ def test_get_content_success(patch_requests_get, test_env):
             },
         },
     }
-    patch_requests_get(MockResponse(json_obj=fake_content))
-    client = ContentRetrievalAPI(user_agent="test-agent", env=test_env)
-    resp = client.get_content(
-        TollbitToken("dummy-token"), "example.com/path/to/content", Format.html
+    get_content = respx_mock.get(
+        f"{test_env.developer_api_base_url}/dev/v2/content/example.com/path/to/content"
+    ).mock(return_value=httpx.Response(200, json=fake_content))
+
+    client = AsyncContentRetrievalAPI(user_agent="test-agent", env=test_env)
+    resp = await client.get_content(
+        TollbitToken("dummy-token"), "example.com/path/to/content", content_formats.HTML
     )
+
     assert isinstance(resp, GetContentResponse)
+    req = assert_request_made(get_content)
+    assert_httpx_request_headers(
+        req,
+        {
+            "User-Agent": "test-agent",
+            "Tollbit-Token": "dummy-token",
+            "Tollbit-Accept-Content": "text/html",
+        },
+    )
 
 
 # https://linear.app/tollbit/issue/TOL-1184/getcontent-v2-returns-empty-response-for-no-content
 @pytest.mark.skip(
     reason="This currently returns an empty object instead of a 404. We need to discuss this for V2"
 )
-def test_get_content_no_content(patch_requests_get):
+@pytest.mark.anyio
+async def test_get_content_no_content(respx_mock, test_env):
     fake_response = {
         "content": {"header": "", "body": "", "footer": ""},
         "metadata": {
@@ -78,14 +97,20 @@ def test_get_content_no_content(patch_requests_get):
         },
     }
 
-    patch_requests_get(MockResponse(json_obj=fake_response))
-    client = ContentRetrievalAPI(user_agent="test-agent", environment="local")
+    respx_mock.get(
+        f"{test_env.developer_api_base_url}/dev/v2/content/example.com/path/to/content"
+    ).mock(return_value=httpx.Response(200, json=fake_response))
+
+    client = AsyncContentRetrievalAPI(user_agent="test-agent", env=test_env)
 
     with pytest.raises(BadRequestError):
-        client.get_content(TollbitToken("dummy-token"), "nosuchurl.com/imaginary", Format.html)
+        await client.get_content(
+            TollbitToken("dummy-token"), "nosuchurl.com/imaginary", content_formats.HTML
+        )
 
 
-def test_get_content_problem_json_error(patch_requests_get, test_env):
+@pytest.mark.anyio
+async def test_get_content_problem_json_error(respx_mock, test_env):
     fake_response = {
         "detail": "Fail",
         "instance": "/dev/v2/content/pioneervalleygazette.com/daydream",
@@ -94,10 +119,19 @@ def test_get_content_problem_json_error(patch_requests_get, test_env):
         "type": "about:blank",
     }
 
-    patch_requests_get(MockResponse(problem_json_obj=fake_response, status_code=500))
-    client = ContentRetrievalAPI(user_agent="test-agent", env=test_env)
+    respx_mock.get(
+        f"{test_env.developer_api_base_url}/dev/v2/content/example.com/path/to/content"
+    ).mock(
+        return_value=httpx.Response(
+            500, json=fake_response, headers={"Content-Type": "application/problem+json"}
+        )
+    )
+
+    client = AsyncContentRetrievalAPI(user_agent="test-agent", env=test_env)
     with pytest.raises(ApiError) as exc_info:
-        client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content", Format.html)
+        await client.get_content(
+            TollbitToken("dummy-token"), "example.com/path/to/content", content_formats.HTML
+        )
 
     error = exc_info.value
     assert (
@@ -106,17 +140,29 @@ def test_get_content_problem_json_error(patch_requests_get, test_env):
     )
 
 
-def test_get_content_non_problem_json_error(patch_requests_get, test_env):
-    patch_requests_get(MockResponse(body_text="Teapots on the attack", status_code=418))
-    client = ContentRetrievalAPI(user_agent="test-agent", env=test_env)
+@pytest.mark.anyio
+async def test_get_content_non_problem_json_error(respx_mock, test_env):
+    respx_mock.get(
+        f"{test_env.developer_api_base_url}/dev/v2/content/example.com/path/to/content"
+    ).mock(return_value=httpx.Response(418, text="Teapots on the attack"))
+    client = AsyncContentRetrievalAPI(user_agent="test-agent", env=test_env)
     with pytest.raises(ApiError) as exc_info:
-        client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content", Format.html)
+        await client.get_content(
+            TollbitToken("dummy-token"), "example.com/path/to/content", content_formats.HTML
+        )
 
     error = exc_info.value
     assert str(error) == "API Error: (418) Teapots on the attack"
 
 
-def test_get_content_unreachable(mock_server_down, test_env):
-    client = ContentRetrievalAPI(user_agent="test-agent", env=test_env)
+@pytest.mark.anyio
+async def test_get_content_unreachable(mock_httpx_server_down, test_env):
+    mock_httpx_server_down(
+        f"{test_env.developer_api_base_url}/dev/v2/content/example.com/path/to/content"
+    )
+
+    client = AsyncContentRetrievalAPI(user_agent="test-agent", env=test_env)
     with pytest.raises(ServerError):
-        client.get_content(TollbitToken("dummy-token"), "example.com/path/to/content", Format.html)
+        await client.get_content(
+            TollbitToken("dummy-token"), "example.com/path/to/content", content_formats.HTML
+        )

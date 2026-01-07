@@ -1,4 +1,6 @@
 import requests
+import httpx
+import anyio
 from pydantic import TypeAdapter
 from tollbit._environment import Environment
 from tollbit.content_formats import Format
@@ -18,7 +20,7 @@ _GET_CONTENT_PATH = "/dev/v2/content/<PATH>"
 logger = get_sdk_logger(__name__)
 
 
-class ContentRetrievalAPI:
+class AsyncContentRetrievalAPI:
     user_agent: str
     _base_url: str
 
@@ -26,7 +28,7 @@ class ContentRetrievalAPI:
         self.user_agent = user_agent
         self._base_url = env.developer_api_base_url
 
-    def get_content(
+    async def get_content(
         self, token: TollbitToken, content_url: str, format: Format
     ) -> GetContentResponse:
         # Implementation for fetching content using the provided token
@@ -41,15 +43,17 @@ class ContentRetrievalAPI:
                 "Requesting content...",
                 extra={"url": url, "headers": headers},
             )
-            response = requests.get(
-                url,
-                headers=headers,
-            )
+
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    url,
+                    headers=headers,
+                )
             logger.debug(
                 "Received content response",
                 extra={"status_code": response.status_code, "response_text": response.text},
             )
-        except requests.RequestException as e:
+        except httpx.RequestError as e:
             logger.error(f"Error occurred while fetching content: {e}")
             raise ServerError("Unable to connect to the Tollbit server") from e
 
@@ -61,3 +65,16 @@ class ContentRetrievalAPI:
         data = response.json()
         logger.debug("Parsing get content response", extra={"response": data})
         return TypeAdapter(GetContentResponse).validate_python(data)
+
+
+class ContentRetrievalAPI:
+    def __init__(self, user_agent: str, env: Environment):
+        self._async_api = AsyncContentRetrievalAPI(user_agent, env)
+        self._env = env
+
+    def get_content(
+        self, token: TollbitToken, content_url: str, format: Format
+    ) -> GetContentResponse:
+        return anyio.run(
+            self._async_api.get_content, token, content_url, format, backend=self._env.anyio_backend
+        )
