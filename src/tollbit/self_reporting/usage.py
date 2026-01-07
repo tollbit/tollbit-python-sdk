@@ -1,8 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
-from tollbit.licences.types import LicenceType
-from tollbit.licences.permissions import LicensePermission
+from tollbit.licenses.types import LicenseType
+from tollbit.licenses.permissions import LicensePermission
 
 
 def usage(
@@ -10,7 +10,7 @@ def usage(
     times_used: int,
     license_permissions: list[LicensePermission],
     license_id: str,
-    license_type: LicenceType,
+    license_type: LicenseType,
     metadata: dict[str, Any] | None = None,
 ) -> Usage:
     return Usage(
@@ -29,5 +29,5 @@ class Usage:
     times_used: int
     license_permissions: list[LicensePermission]
     license_id: str
-    license_type: LicenceType
+    license_type: LicenseType
     metadata: dict[str, Any] | None = None

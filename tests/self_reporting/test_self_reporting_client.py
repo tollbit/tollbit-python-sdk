@@ -2,7 +2,7 @@ import pytest
 from tollbit._apis.self_reporting_api import SelfReportingAPI
 from tollbit.self_reporting.client import SelfReportingClient, TransactionBlock
 from tollbit.self_reporting.usage import usage
-from tollbit import licences
+from tollbit import licenses
 from tollbit._apis.models import (
     SelfReportContentUsageRequest,
     SelfReportContentUsageResponse,
@@ -35,9 +35,9 @@ def test_self_report_usage():
     u = usage(
         url="https://example.com/resource",
         times_used=5,
-        license_permissions=[licences.permissions.LICENSE_PERMISSION_FULL_USE],
+        license_permissions=[licenses.permissions.LICENSE_PERMISSION_FULL_USE],
         license_id="cuid_123",
-        license_type=licences.types.ON_DEMAND_LICENSE,
+        license_type=licenses.types.ON_DEMAND_LICENSE,
     )
     tb = client.create_transaction_block([u])
     assert tb.idempotency_id is not None

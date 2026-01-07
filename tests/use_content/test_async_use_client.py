@@ -6,7 +6,7 @@ from tollbit._apis.content_retrieval_api import AsyncContentRetrievalAPI
 from unittest.mock import AsyncMock, MagicMock
 from tollbit.tokens import TollbitToken
 from tollbit import currencies
-from tollbit import licences
+from tollbit import licenses
 from tollbit._apis.models import (
     CreateSubdomainAccessTokenRequest,
     CreateSubdomainAccessTokenResponse,
@@ -38,7 +38,7 @@ async def test_get_sanctioned_content_async():
         url=fake_content_url,
         max_price_micros=1000000,
         currency=currencies.USD,
-        license_type=licences.types.ON_DEMAND_LICENSE,
+        license_type=licenses.types.ON_DEMAND_LICENSE,
     )
 
     mock_token_api.get_content_token.assert_awaited_once_with(
@@ -81,7 +81,7 @@ async def test_get_sanctioned_content_with_html_async():
         url=fake_content_url,
         max_price_micros=1000000,
         currency=currencies.USD,
-        license_type=licences.types.ON_DEMAND_LICENSE,
+        license_type=licenses.types.ON_DEMAND_LICENSE,
         format=Format.html,
     )
 

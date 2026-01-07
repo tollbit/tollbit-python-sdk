@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 from test_helpers.stub_api_responses import stub_rate_response, stub_content_response
 from tollbit.tokens import TollbitToken
 from tollbit import currencies
-from tollbit import licences
+from tollbit import licenses
 from tollbit._apis.models import (
     CreateSubdomainAccessTokenRequest,
     CreateSubdomainAccessTokenResponse,
@@ -59,7 +59,7 @@ def test_get_sanctioned_content():
         url=fake_content_url,
         max_price_micros=1000000,
         currency=currencies.USD,
-        license_type=licences.types.ON_DEMAND_LICENSE,
+        license_type=licenses.types.ON_DEMAND_LICENSE,
     )
 
     # Assert
@@ -102,7 +102,7 @@ def test_get_sanctioned_content_with_html():
         url=fake_content_url,
         max_price_micros=1000000,
         currency=currencies.USD,
-        license_type=licences.types.ON_DEMAND_LICENSE,
+        license_type=licenses.types.ON_DEMAND_LICENSE,
         format=Format.html,
     )
 
