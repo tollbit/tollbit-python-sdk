@@ -1,7 +1,7 @@
 from __future__ import annotations
 from tollbit._apis.models import ProblemJSON
 from tollbit._logging import get_sdk_logger
-from httpx import Response
+from httpx import Response, RequestError
 
 logger = get_sdk_logger(__name__)
 
@@ -69,8 +69,15 @@ class ApiError(RuntimeError):
         return self._raw_message or "Unknown Error"
 
 
-class UnauthorizedError(RuntimeError):
-    pass
+def httpx_error_details(e: RequestError) -> dict[str, str | None]:
+    """Extract details from an httpx.RequestError for logging."""
+    request = e.request
+    return {
+        "url": str(request.url) if request else None,
+        "method": request.method if request else None,
+        "headers": dict(request.headers) if request else None,
+        "cause": e.__cause__.__class__.__name__ if e.__cause__ else None,
+    }
 
 
 class BadRequestError(RuntimeError):
@@ -78,14 +85,4 @@ class BadRequestError(RuntimeError):
 
 
 class ServerError(RuntimeError):
-    pass
-
-
-class ParseResponseError(RuntimeError):
-    """Raised when there is an error parsing the response from the API."""
-
-    pass
-
-
-class UnknownError(RuntimeError):
     pass

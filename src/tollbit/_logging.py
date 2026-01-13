@@ -2,6 +2,19 @@ import logging
 import os
 from pythonjsonlogger import json as jsonlogger
 
+_SENSITIVE_KEYS = {"tollbitkey", "tollbit-token"}
+
+
+class TollbitAuthHeadersFilter(logging.Filter):
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        # Sanitize extra fields
+        if hasattr(record, "__dict__"):
+            for key in list(record.__dict__):
+                if key.lower() in _SENSITIVE_KEYS:
+                    record.__dict__[key] = "[REDACTED]"
+        return True
+
 
 def _build_sdk_root_logger(name: str) -> logging.Logger:
     """Return the root logger for the SDK."""
@@ -10,12 +23,17 @@ def _build_sdk_root_logger(name: str) -> logging.Logger:
     level = getattr(logging, level_name.upper(), logging.WARNING)
     logger.setLevel(level)
 
+    tb_filter = TollbitAuthHeadersFilter()
     # Add a StreamHandler if no handlers are present
     if not logger.hasHandlers():
         handler = logging.StreamHandler()
         formatter = jsonlogger.JsonFormatter("%(asctime)s %(levelname)s %(name)s %(message)s")
         handler.setFormatter(formatter)
+        handler.addFilter(tb_filter)  # Scrub out sensitive info
         logger.addHandler(handler)
+    else:
+        for handler in logger.handlers:
+            handler.addFilter(tb_filter)  # Scrub out sensitive info
 
     return logger
 

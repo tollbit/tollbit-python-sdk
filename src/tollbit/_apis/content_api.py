@@ -9,6 +9,7 @@ from tollbit._apis.models import (
 from tollbit._apis.errors import (
     ApiError,
     ServerError,
+    httpx_error_details,
 )
 from tollbit._logging import get_sdk_logger
 
@@ -36,7 +37,7 @@ class AsyncContentAPI:
             async with httpx.AsyncClient() as client:
                 response = await client.get(url, headers=headers)
         except httpx.RequestError as e:
-            logger.error(f"Error occurred while fetching rate: {e}")
+            logger.error(f"Couldn't fetch rate: {e!r}", extra=httpx_error_details(e))
             raise ServerError("Unable to connect to the Tollbit server") from e
 
         logger.debug("Raw response", extra={"response_text": response.text})
@@ -71,7 +72,7 @@ class AsyncContentAPI:
             async with httpx.AsyncClient() as client:
                 response = await client.get(url, headers=headers, params=params)
         except httpx.RequestError as e:
-            logger.error(f"Error occurred while fetching content catalog: {e}")
+            logger.error(f"Couldn't fetch content catalog: {e!r}", extra=httpx_error_details(e))
             raise ServerError("Unable to connect to the Tollbit server") from e
 
         logger.debug(

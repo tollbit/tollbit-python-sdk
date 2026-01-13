@@ -9,6 +9,7 @@ from tollbit._apis.models import (
 from tollbit._apis.errors import (
     ApiError,
     ServerError,
+    httpx_error_details,
 )
 from pydantic import BaseModel, TypeAdapter
 from tollbit._logging import get_sdk_logger
@@ -42,7 +43,7 @@ class AsyncSelfReportingAPI:
                 _SELF_REPORTING_API_BASE_PATH, self._headers(), request
             )
         except httpx.RequestError as e:
-            logger.error(f"Connection error occurred: {e}")
+            logger.error(f"Couldn't report self usage: {e!r}", extra=httpx_error_details(e))
             raise ServerError("Unable to connect to the Tollbit server") from e
 
         logger.debug(
