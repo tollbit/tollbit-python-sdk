@@ -10,6 +10,7 @@ from tollbit._apis.errors import (
     ApiError,
     ServerError,
     httpx_error_details,
+    api_error_details,
 )
 from tollbit._logging import get_sdk_logger
 
@@ -44,7 +45,7 @@ class AsyncContentAPI:
 
         if response.status_code != 200:
             err = ApiError.from_response(response)
-            logger.error(str(err))
+            logger.error(f"Couldn't get rate: {err!r}", extra=api_error_details(err))
             raise err
 
         resp: list[DeveloperRateResponse] = TypeAdapter(
@@ -82,7 +83,7 @@ class AsyncContentAPI:
 
         if response.status_code != 200:
             err = ApiError.from_response(response)
-            logger.error(str(err))
+            logger.error(f"Couldn't get content catalog: {err!r}", extra=api_error_details(err))
             raise err
 
         resp: CatalogResponse = TypeAdapter(CatalogResponse).validate_python(response.json())

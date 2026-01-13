@@ -8,6 +8,7 @@ from tollbit._apis.errors import (
     ServerError,
     ApiError,
     httpx_error_details,
+    api_error_details,
 )
 from tollbit._logging import get_sdk_logger
 
@@ -61,7 +62,7 @@ class AsyncSearchAPI:
 
         if response.status_code != 200:
             err = ApiError.from_response(response)
-            logger.error(str(err))
+            logger.error(f"Couldn't get search results: {err!r}", extra=api_error_details(err))
             raise err
 
         resp: PagedSearchResultResponse = TypeAdapter(PagedSearchResultResponse).validate_python(

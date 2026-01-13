@@ -10,6 +10,7 @@ from tollbit._apis.errors import (
     ApiError,
     ServerError,
     httpx_error_details,
+    api_error_details,
 )
 from pydantic import BaseModel, TypeAdapter
 from tollbit._logging import get_sdk_logger
@@ -52,7 +53,7 @@ class AsyncSelfReportingAPI:
         )
         if response.status_code != 200:
             err = ApiError.from_response(response)
-            logger.error(str(err))
+            logger.error(f"Couldn't report self usage: {err!r}", extra=api_error_details(err))
             raise err
 
         return TypeAdapter(SelfReportContentUsageResponse).validate_python(response.json())
