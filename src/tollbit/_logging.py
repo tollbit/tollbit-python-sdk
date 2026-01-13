@@ -32,8 +32,8 @@ def _build_sdk_root_logger(name: str) -> logging.Logger:
         handler.addFilter(tb_filter)  # Scrub out sensitive info
         logger.addHandler(handler)
     else:
-        for handler in logger.handlers:
-            handler.addFilter(tb_filter)  # Scrub out sensitive info
+        for existing_handler in logger.handlers:
+            existing_handler.addFilter(tb_filter)  # Scrub out sensitive info
 
     return logger
 

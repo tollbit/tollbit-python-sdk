@@ -73,7 +73,7 @@ class ApiError(RuntimeError):
         return self._raw_message or "Unknown Error"
 
 
-def httpx_error_details(e: RequestError) -> dict[str, str | None]:
+def httpx_error_details(e: RequestError) -> dict[str, str | None | dict[str, str]]:
     """Extract details from an httpx.RequestError for logging."""
     request = e.request
     return {
