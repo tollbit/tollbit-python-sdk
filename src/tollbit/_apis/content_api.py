@@ -9,6 +9,8 @@ from tollbit._apis.models import (
 from tollbit._apis.errors import (
     ApiError,
     ServerError,
+    httpx_error_details,
+    api_error_details,
 )
 from tollbit._logging import get_sdk_logger
 
@@ -36,14 +38,14 @@ class AsyncContentAPI:
             async with httpx.AsyncClient() as client:
                 response = await client.get(url, headers=headers)
         except httpx.RequestError as e:
-            logger.error(f"Error occurred while fetching rate: {e}")
+            logger.error(f"Couldn't fetch rate: {e!r}", extra=httpx_error_details(e))
             raise ServerError("Unable to connect to the Tollbit server") from e
 
         logger.debug("Raw response", extra={"response_text": response.text})
 
         if response.status_code != 200:
             err = ApiError.from_response(response)
-            logger.error(str(err))
+            logger.error(f"Couldn't get rate: {err!r}", extra=api_error_details(err))
             raise err
 
         resp: list[DeveloperRateResponse] = TypeAdapter(
@@ -71,7 +73,7 @@ class AsyncContentAPI:
             async with httpx.AsyncClient() as client:
                 response = await client.get(url, headers=headers, params=params)
         except httpx.RequestError as e:
-            logger.error(f"Error occurred while fetching content catalog: {e}")
+            logger.error(f"Couldn't fetch content catalog: {e!r}", extra=httpx_error_details(e))
             raise ServerError("Unable to connect to the Tollbit server") from e
 
         logger.debug(
@@ -81,7 +83,7 @@ class AsyncContentAPI:
 
         if response.status_code != 200:
             err = ApiError.from_response(response)
-            logger.error(str(err))
+            logger.error(f"Couldn't get content catalog: {err!r}", extra=api_error_details(err))
             raise err
 
         resp: CatalogResponse = TypeAdapter(CatalogResponse).validate_python(response.json())

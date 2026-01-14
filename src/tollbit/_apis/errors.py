@@ -1,7 +1,7 @@
 from __future__ import annotations
 from tollbit._apis.models import ProblemJSON
 from tollbit._logging import get_sdk_logger
-from httpx import Response
+from httpx import Response, RequestError
 
 logger = get_sdk_logger(__name__)
 
@@ -43,7 +43,11 @@ class ApiError(RuntimeError):
 
     def __str__(self) -> str:
         if self._problem_json:
-            return f"API Error: ({self.status_code}) {self.title} - {self.detail} (instance: {self.instance})"
+            detail_expanded = ""
+            if self.detail:
+                detail_expanded = f" - {self.detail}"
+
+            return f"API Error: ({self.status_code}) {self.title}{detail_expanded} (instance: {self.instance})"
         if self._raw_message:
             return f"API Error: ({self.status_code}) {self._raw_message}"
 
@@ -69,8 +73,25 @@ class ApiError(RuntimeError):
         return self._raw_message or "Unknown Error"
 
 
-class UnauthorizedError(RuntimeError):
-    pass
+def httpx_error_details(e: RequestError) -> dict[str, str | None | dict[str, str]]:
+    """Extract details from an httpx.RequestError for logging."""
+    request = e.request
+    return {
+        "url": str(request.url) if request else None,
+        "method": request.method if request else None,
+        "headers": dict(request.headers) if request else None,
+        "cause": e.__cause__.__class__.__name__ if e.__cause__ else None,
+    }
+
+
+def api_error_details(e: ApiError) -> dict[str, str | None]:
+    """Extract details from an ApiError for logging."""
+    return {
+        "status_code": str(e.status_code),
+        "detail": e.detail,
+        "instance": e.instance,
+        "title": e.title,
+    }
 
 
 class BadRequestError(RuntimeError):
@@ -78,14 +99,4 @@ class BadRequestError(RuntimeError):
 
 
 class ServerError(RuntimeError):
-    pass
-
-
-class ParseResponseError(RuntimeError):
-    """Raised when there is an error parsing the response from the API."""
-
-    pass
-
-
-class UnknownError(RuntimeError):
     pass

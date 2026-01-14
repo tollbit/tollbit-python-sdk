@@ -2,20 +2,46 @@ import logging
 import os
 from pythonjsonlogger import json as jsonlogger
 
+_SENSITIVE_KEYS = {"tollbitkey", "tollbit-token"}
+
+LOG_LEVEL_ENV_VAR = "TOLLBIT_PYSDK_LOG_LEVEL"
+REDACT_DISABLED_ENV_VAR = "TOLLBIT_PYSDK_LOG_REDACT_DISABLE_DANGEROUS_DANGEROUS"
+
+
+class TollbitAuthHeadersFilter(logging.Filter):
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        # Sanitize extra fields
+        if hasattr(record, "__dict__"):
+            headers = record.__dict__.get("headers")
+            if headers and isinstance(headers, dict):
+                for key in list(headers.keys()):
+                    if key.lower() in _SENSITIVE_KEYS:
+                        headers[key] = "[REDACTED]"
+        return True
+
 
 def _build_sdk_root_logger(name: str) -> logging.Logger:
     """Return the root logger for the SDK."""
     logger = logging.getLogger(SDK_LOGGER_NAME)
     level_name = os.getenv("TOLLBIT_PYSDK_LOG_LEVEL", "WARNING")
+    redact_sensitive = os.getenv(REDACT_DISABLED_ENV_VAR, "false").lower() != "true"
     level = getattr(logging, level_name.upper(), logging.WARNING)
     logger.setLevel(level)
 
+    tb_filter = TollbitAuthHeadersFilter()
     # Add a StreamHandler if no handlers are present
     if not logger.hasHandlers():
         handler = logging.StreamHandler()
         formatter = jsonlogger.JsonFormatter("%(asctime)s %(levelname)s %(name)s %(message)s")
         handler.setFormatter(formatter)
+        if redact_sensitive:
+            handler.addFilter(tb_filter)
         logger.addHandler(handler)
+    else:
+        if redact_sensitive:
+            for existing_handler in logger.handlers:
+                existing_handler.addFilter(tb_filter)  # Scrub out sensitive info
 
     return logger
 

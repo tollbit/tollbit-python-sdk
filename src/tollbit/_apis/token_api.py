@@ -10,11 +10,10 @@ from tollbit._apis.models import (
     CreateCrawlAccessTokenResponse,
 )
 from tollbit._apis.errors import (
-    UnauthorizedError,
-    BadRequestError,
     ServerError,
-    UnknownError,
     ApiError,
+    httpx_error_details,
+    api_error_details,
 )
 from tollbit._environment import Environment
 from tollbit._logging import get_sdk_logger
@@ -49,7 +48,7 @@ class AsyncTokenAPI:
         try:
             response = await self._post_model(CREATE_CONTENT_TOKEN_PATH, self._headers(), req)
         except httpx.RequestError as e:
-            logger.error(f"Connection error occurred: {e}")
+            logger.error(f"Couldn't fetch content token: {e!r}", extra=httpx_error_details(e))
             raise ServerError("Unable to connect to the Tollbit server") from e
 
         return _handle_response(response, CreateSubdomainAccessTokenResponse)
@@ -68,7 +67,7 @@ class AsyncTokenAPI:
         try:
             response = await self._post_model(CREATE_CRAWL_TOKEN_PATH, self._headers(), req)
         except httpx.RequestError as e:
-            logger.error(f"Connection error occurred: {e}")
+            logger.error(f"Couldn't fetch crawl token: {e!r}", extra=httpx_error_details(e))
             raise ServerError("Unable to connect to the Tollbit server") from e
 
         return _handle_response(response, CreateCrawlAccessTokenResponse)
@@ -117,7 +116,7 @@ class TokenAPI:
 def _handle_response(response: httpx.Response, success_model: Type[T]) -> T:
     if response.status_code != 200:
         err = ApiError.from_response(response)
-        logger.error(str(err))
+        logger.error(f"Couldn't get token: {err!r}", extra=api_error_details(err))
         raise err
 
     result: T = TypeAdapter(success_model).validate_python(response.json())
