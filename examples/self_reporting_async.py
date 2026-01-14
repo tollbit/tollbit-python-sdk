@@ -5,7 +5,6 @@
 from tollbit import self_reporting
 from tollbit.self_reporting import Usage, TransactionBlock, AsyncSelfReportingClient
 from tollbit import licenses
-from tollbit import use_content
 import os
 from dataclasses import dataclass
 from anyio import create_memory_object_stream, create_task_group, run

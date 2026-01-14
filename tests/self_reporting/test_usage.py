@@ -19,7 +19,7 @@ def test_usage_standard_license():
         times_used=3,
         license_permissions=[licenses.permissions.LICENSE_PERMISSION_FULL_USE],
         license_type=licenses.types.ON_DEMAND_LICENSE,
-        license_id="standard-license-123", # Can optionally provide license_id
+        license_id="standard-license-123",  # Can optionally provide license_id
         metadata={"key": "value"},
     )
     assert u is not None
