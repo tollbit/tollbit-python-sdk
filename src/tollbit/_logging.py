@@ -13,7 +13,7 @@ class TollbitAuthHeadersFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         # Sanitize extra fields
         if hasattr(record, "__dict__"):
-            headers = record.__dict__.get("headers").copy()
+            headers = record.__dict__.get("headers")
             if headers and isinstance(headers, dict):
                 headers_copy = headers.copy()
                 for key in list(headers_copy.keys()):
