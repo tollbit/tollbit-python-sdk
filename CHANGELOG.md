@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.1 - 2026-01-14
+
+### Added
+
+- Log scrubber for Authentication headers
+
+### Changed
+
+- Update self reporting to only require license id for custom licenses
+
 ## 0.5.0 - 2026-01-07
 
 ### Added
