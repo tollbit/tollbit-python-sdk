@@ -11,40 +11,6 @@ import os
 api_key = os.getenv("TOLLBIT_ORG_API_KEY", "YOUR_API_KEY_HERE")
 user_agent = os.getenv("TOLLBIT_USER_AGENT", "tollbit-python-sdk-example/0.1.0")
 
-# Get licenses for use in the transaction
-client = use_content.create_client(secret_key=api_key, user_agent=user_agent)
-
-
-# In this example we use get_rate to fetch the license information for two different URLs, specifically
-# the ids of the licenses that we will be reporting usage against. In a real-world scenario, you would
-# likely store these license ids somewhere after an initial retrieval, rather than fetching them
-# every time you want to report usage.
-daydream_rate_info = client.get_rate(url="https://pioneervalleygazette.com/daydream")
-daydream_license = daydream_rate_info[0].license
-sunset_rate_info = client.get_rate(url="https://pioneervalleygazette.com/sunset")
-sunset_license = sunset_rate_info[0].license
-
-print("Daydream rate info:")
-for ix, rate in enumerate(daydream_rate_info):
-    print("Rate index", ix)
-    print(f"rate.price.price_micros: {rate.price.price_micros}")
-    print(f"rate.price.currency: {rate.price.currency}")
-    print(f"rate.license.id: {rate.license.id}")
-    print(f"rate.license.license_type: {rate.license.license_type}")
-    print(f"rate.license.license_path: {rate.license.license_path}")
-    print(f"rate.permissions: {rate.license.permissions}")
-
-
-print("Sunset rate info:")
-for ix, rate in enumerate(sunset_rate_info):
-    print("Rate index", ix)
-    print(f"rate.price.price_micros: {rate.price.price_micros}")
-    print(f"rate.price.currency: {rate.price.currency}")
-    print(f"rate.license.id: {rate.license.id}")
-    print(f"rate.license.license_type: {rate.license.license_type}")
-    print(f"rate.license.license_path: {rate.license.license_path}")
-    print(f"rate.permissions: {rate.license.permissions}")
-
 reporting_client = self_reporting.create_client(secret_key=api_key, user_agent=user_agent)
 
 # When reporting usage, we need to create a transaction block that contains one or more usages. Transaction
@@ -53,24 +19,16 @@ reporting_client = self_reporting.create_client(secret_key=api_key, user_agent=u
 # a report to be sent multiple times.
 usages = []
 usages.append(
+    # This usage represents accessing a page with one of our standard licenses (ON_DEMAND_LICENSE, ON_DEMAND_FULL_USE_LICENSE).
+    # We don't need to provide a license_id in this case, as Tollbit will handle that for us.
     self_reporting.usage(
         url="https://pioneervalleygazette.com/daydream",
         times_used=1,
         license_permissions=[licenses.permissions.LICENSE_PERMISSION_PARTIAL_USE],
-        license_id=daydream_license.id,
         license_type=licenses.types.ON_DEMAND_LICENSE,
     )
 )
-usages.append(
-    self_reporting.usage(
-        url="https://pioneervalleygazette.com/sunset",
-        times_used=2,
-        license_permissions=[licenses.permissions.LICENSE_PERMISSION_PARTIAL_USE],
-        license_id=sunset_license.id,
-        license_type=licenses.types.ON_DEMAND_FULL_USE_LICENSE,
-        metadata={"another_key": "another_value"},
-    )
-)
+
 transaction_block = reporting_client.create_transaction_block(usages)
 
 # Now we can report the transaction block to Tollbit

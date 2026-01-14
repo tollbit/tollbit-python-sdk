@@ -5,7 +5,6 @@
 from tollbit import self_reporting
 from tollbit.self_reporting import Usage, TransactionBlock, AsyncSelfReportingClient
 from tollbit import licenses
-from tollbit import use_content
 import os
 from dataclasses import dataclass
 from anyio import create_memory_object_stream, create_task_group, run
@@ -86,19 +85,6 @@ async def record_usage(send_usage: MemoryObjectSendStream[Usage], usage: Usage):
 
 
 async def main():
-
-    client = use_content.create_async_client(secret_key=api_key, user_agent=user_agent)
-    # In this example we use get_rate to fetch the license information for two different URLs, specifically
-    # the ids of the licenses that we will be reporting usage against. In a real-world scenario, you would
-    # likely store these license ids somewhere after an initial retrieval, rather than fetching them
-    # every time you want to report usage.
-    daydream_rate_info = await client.get_rate(url="https://pioneervalleygazette.com/daydream")
-    daydream_license = daydream_rate_info[0].license
-    sunset_rate_info = await client.get_rate(url="https://pioneervalleygazette.com/sunset")
-    sunset_license = sunset_rate_info[0].license
-    frog_rate_info = await client.get_rate(url="https://pioneervalleygazette.com/frog")
-    frog_license = frog_rate_info[0].license
-
     reporting_client = self_reporting.create_async_client(secret_key=api_key, user_agent=user_agent)
     send_usage, receive_usage = create_memory_object_stream[Usage]()
     send_transaction, receive_transaction = create_memory_object_stream[
@@ -118,7 +104,6 @@ async def main():
                 url="https://pioneervalleygazette.com/daydream",
                 times_used=1,
                 license_permissions=[licenses.permissions.LICENSE_PERMISSION_PARTIAL_USE],
-                license_id=daydream_license.id,
                 license_type=licenses.types.ON_DEMAND_LICENSE,
             ),
         )
@@ -129,7 +114,6 @@ async def main():
                 url="https://pioneervalleygazette.com/sunset",
                 times_used=20,
                 license_permissions=[licenses.permissions.LICENSE_PERMISSION_PARTIAL_USE],
-                license_id=sunset_license.id,
                 license_type=licenses.types.ON_DEMAND_LICENSE,
             ),
         )
@@ -140,7 +124,6 @@ async def main():
                 url="https://pioneervalleygazette.com/frog",
                 times_used=5,
                 license_permissions=[licenses.permissions.LICENSE_PERMISSION_PARTIAL_USE],
-                license_id=frog_license.id,
                 license_type=licenses.types.ON_DEMAND_LICENSE,
             ),
         )
