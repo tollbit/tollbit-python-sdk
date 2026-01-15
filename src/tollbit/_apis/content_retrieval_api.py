@@ -29,6 +29,7 @@ class AsyncContentRetrievalAPI:
     def __init__(self, user_agent: str, env: Environment):
         self.user_agent = user_agent
         self._base_url = env.developer_api_base_url
+        self._timeout = env.timeout
 
     async def get_content(
         self, token: TollbitToken, content_url: str, format: Format
@@ -46,7 +47,7 @@ class AsyncContentRetrievalAPI:
                 extra={"url": url, "headers": headers},
             )
 
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=self._timeout) as client:
                 response = await client.get(
                     url,
                     headers=headers,

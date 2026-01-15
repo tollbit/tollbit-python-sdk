@@ -21,11 +21,13 @@ class AsyncSearchAPI:
     api_key: str
     user_agent: str
     _base_url: str
+    _timeout: int
 
     def __init__(self, api_key: str, user_agent: str, env: Environment):
         self.api_key = api_key
         self.user_agent = user_agent
         self._base_url = env.developer_api_base_url
+        self._timeout = env.timeout
 
     async def search(
         self,
@@ -49,7 +51,7 @@ class AsyncSearchAPI:
             extra={"url": url, "headers": headers, "params": params},
         )
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=self._timeout) as client:
                 response = await client.get(url, headers=headers, params=params)
         except httpx.RequestError as e:
             logger.error(f"Couldn't fetch search results: {e!r}", extra=httpx_error_details(e))

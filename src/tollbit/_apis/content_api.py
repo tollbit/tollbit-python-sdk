@@ -26,6 +26,7 @@ class AsyncContentAPI:
         self.api_key = api_key
         self.user_agent = user_agent
         self._base_url = env.developer_api_base_url
+        self._timeout = env.timeout
 
     async def get_rate(self, content: str) -> list[DeveloperRateResponse]:
         headers = self._headers()
@@ -35,7 +36,7 @@ class AsyncContentAPI:
             extra={"content": content, "url": url, "headers": headers},
         )
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=self._timeout) as client:
                 response = await client.get(url, headers=headers)
         except httpx.RequestError as e:
             logger.error(f"Couldn't fetch rate: {e!r}", extra=httpx_error_details(e))
@@ -70,7 +71,7 @@ class AsyncContentAPI:
             extra={"url": url, "headers": headers, "params": params},
         )
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=self._timeout) as client:
                 response = await client.get(url, headers=headers, params=params)
         except httpx.RequestError as e:
             logger.error(f"Couldn't fetch content catalog: {e!r}", extra=httpx_error_details(e))
