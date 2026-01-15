@@ -344,6 +344,12 @@ results = await client.search(q="DIY home projects for millenials")
 
 For more examples please see [examples/search_async.py](examples/search_async.py)
 
+## Configuration
+
+### `request_timeout`
+
+All create client function can take the optional parameters `request_timeout` (float; defaults to 5.0) which sets a timeout for all network requests. Please be aware that some operations
+use multiple network calls, and the timeout is set for each individual network request not for the client function call overall.
 
 ## Issues
 We have disabled issues for the time being. Please reach out directly to tollbit
