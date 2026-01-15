@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.2 - 2026-01-15
+
+## Added
+
+- Default timeout for network requests; set via environment variable
+- Allow clients to override timeout for network requests
+- Add #get_rates to crawl_client
+
 ## 0.5.1 - 2026-01-14
 
 ### Added

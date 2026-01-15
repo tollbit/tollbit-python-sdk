@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 from dataclasses import dataclass
+from typing import Any
 
 # Environement configurations
 _DEVELOPER_API_BASE_URL_ENV = "TOLLBIT_SDK_DEVELOPER_API_BASE_URL"
@@ -17,7 +18,20 @@ class Environment:
     anyio_backend: str
     timeout: float
 
-    def override(self, **kwargs) -> Environment:
+    def override(self, **kwargs: Any) -> Environment:
+        """
+        Create a new Environment instance with values overridden by keyword arguments.
+
+        Parameters:
+            **kwargs: Arbitrary keyword arguments corresponding to Environment fields.
+                Supported keys include:
+                    - developer_api_base_url (str): Override the API base URL.
+                    - anyio_backend (str): Override the async backend.
+                    - timeout (float | int): Override the timeout value.
+
+        Returns:
+            Environment: A new Environment instance with updated values.
+        """
         """Create a new Environment with overridden values."""
         return Environment(
             developer_api_base_url=kwargs.get(
