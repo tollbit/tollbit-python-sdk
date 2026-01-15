@@ -6,7 +6,11 @@ from tollbit._apis.token_api import TokenAPI
 from tollbit._apis.models import CreateCrawlAccessTokenRequest, CreateCrawlAccessTokenResponse
 from tollbit.tokens import TollbitToken
 from unittest.mock import MagicMock
-from test_helpers.stub_api_responses import stub_catalog_response, stub_crawl_response
+from test_helpers.stub_api_responses import (
+    stub_catalog_response,
+    stub_crawl_response,
+    stub_rate_response,
+)
 from tollbit.content_formats import Format
 
 
@@ -31,6 +35,29 @@ def test_get_content_catalog(url):
         content_domain="example.com", page_size=100, page_token=None
     )
     assert result == fake_catalog
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "example.com/bar",
+        "https://example.com/bar",
+    ],
+)
+def test_get_rate_calls_variants(url):
+    fake_rate = [stub_rate_response()]
+    mock_content_api = MagicMock(spec=ContentAPI)
+    mock_content_api.get_rate.return_value = fake_rate
+
+    mock_token_api = MagicMock(spec=TokenAPI)
+
+    client = CrawlContentClient(
+        content_api=mock_content_api, token_api=mock_token_api, content_retrieval_api=None
+    )
+
+    result = client.get_rate(url)
+    mock_content_api.get_rate.assert_called_with("example.com/bar")
+    assert result == fake_rate
 
 
 def test_crawl_content():

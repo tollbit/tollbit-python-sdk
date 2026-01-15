@@ -8,9 +8,9 @@ from tollbit._apis.models import (
     CreateCrawlAccessTokenRequest,
     CatalogResponse,
     GetContentResponse,
+    DeveloperRateResponse,
 )
 from tollbit.content_formats import Format
-from pydantic import AnyUrl
 from tollbit._environment import env_from_vars
 from tollbit._logging import get_sdk_logger
 from tollbit.forgiving_urls import parse_url_with_forgiveness
@@ -124,6 +124,10 @@ class AsyncCrawlContentClient:
 
         return results
 
+    async def get_rate(self, url: str) -> list[DeveloperRateResponse]:
+        parsed_url = urlparse(url)
+        return await self.content_api.get_rate(f"{parsed_url.netloc}{parsed_url.path}")
+
 
 class CrawlContentClient:
     content_api: ContentAPI
@@ -183,3 +187,7 @@ class CrawlContentClient:
         )
 
         return response
+
+    def get_rate(self, url: str) -> list[DeveloperRateResponse]:
+        parsed_url = urlparse(url)
+        return self.content_api.get_rate(f"{parsed_url.netloc}{parsed_url.path}")

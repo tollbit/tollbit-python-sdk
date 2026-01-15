@@ -1,6 +1,6 @@
 # In this example, we demonstrate how to use the Tollbit Python SDK
 # to get content rate information for a specific URL.
-from tollbit import use_content
+from tollbit import use_content, crawl_content
 import os
 from dataclasses import dataclass
 from anyio import create_memory_object_stream, create_task_group, run
@@ -33,7 +33,8 @@ async def print_rate_info(receive_stream: MemoryObjectReceiveStream[AsyncRateRes
             print(f"  Permissions: {rate.license.permissions}")
 
 
-async def get_rates(
+# Get rates using either the crawl client or the use client
+async def get_rates_use_client(
     client: use_content.AsyncUseContentClient,
     page: str,
     send_stream: MemoryObjectSendStream[AsyncRateResult],
@@ -43,21 +44,40 @@ async def get_rates(
         await send_stream.send(AsyncRateResult(page, rate_info))
 
 
-async def main():
+async def get_rates_crawl_client(
+    client: crawl_content.AsyncCrawlContentClient,
+    page: str,
+    send_stream: MemoryObjectSendStream[AsyncRateResult],
+):
+    async with send_stream:
+        rate_info = await client.get_rate(url=page)
+        await send_stream.send(AsyncRateResult(page, rate_info))
 
-    client = use_content.create_async_client(secret_key=api_key, user_agent=user_agent)
+
+async def main():
+    use = use_content.create_async_client(secret_key=api_key, user_agent=user_agent)
+    crawl = crawl_content.create_async_client(secret_key=api_key, user_agent=user_agent)
     send_stream, receive_stream = create_memory_object_stream[AsyncRateResult]()
 
     async with create_task_group() as tg:
         tg.start_soon(print_rate_info, receive_stream)
         tg.start_soon(
-            get_rates, client, "https://pioneervalleygazette.com/daydream", send_stream.clone()
+            get_rates_use_client,
+            use,
+            "https://pioneervalleygazette.com/daydream",
+            send_stream.clone(),
         )
         tg.start_soon(
-            get_rates, client, "https://pioneervalleygazette.com/dragon", send_stream.clone()
+            get_rates_use_client,
+            use,
+            "https://pioneervalleygazette.com/dragon",
+            send_stream.clone(),
         )
         tg.start_soon(
-            get_rates, client, "https://pioneervalleygazette.com/leaf-fortune", send_stream.clone()
+            get_rates_crawl_client,
+            crawl,
+            "https://pioneervalleygazette.com/leaf-fortune",
+            send_stream.clone(),
         )
 
         await send_stream.aclose()

@@ -154,16 +154,25 @@ For more examples please see [examples/crawl_content_async.py](examples/crawl_co
 
 ## Checking Rates
 
+You can use either the `use_client` or the `crawl_client` to check rates.
+
 ### Synchronous
 
 ```python
 from tollbit import use_content
+from tollbit import crawl_content
 
-client = use_content.create_client(
+use = use_content.create_client(
     secret_key="YOUR API KEY", 
     user_agent="YOUR USER AGENT"
 )
-rate_info = client.get_rate(url="https://pioneervalleygazette.com/daydream")
+rate_info = use.get_rate(url="https://pioneervalleygazette.com/daydream")
+
+crawl = crawl_content.create_client(
+    secret_key="YOUR API KEY", 
+    user_agent="YOUR USER AGENT"
+)
+rate_info = crawl.get_rate(url="https://pioneervalleygazette.com/daydream")
 ```
 
 For more examples please see [examples/get_rates.py](examples/get_rates.py).
@@ -172,12 +181,19 @@ For more examples please see [examples/get_rates.py](examples/get_rates.py).
 
 ```python
 from tollbit import use_content
+from tollbit import crawl_content
 
-client = use_content.create_async_client(
-    secret_key="YOUR API KEY", 
+use = use_content.create_async_client(
+    secret_key="YOUR API KEY",
     user_agent="YOUR USER AGENT"
 )
-rate_info = await client.get_rate(url="https://pioneervalleygazette.com/daydream")
+rate_info = await use.get_rate(url="https://pioneervalleygazette.com/daydream")
+
+crawl = crawl_content.create_async_client(
+    secret_key="YOUR API KEY",
+    user_agent="YOUR USER AGENT"
+)
+rate_info = await crawl.get_rate(url="https://pioneervalleygazette.com/daydream")
 ```
 
 For more examples please see [examples/get_rates_async.py](examples/get_rates_async.py)
