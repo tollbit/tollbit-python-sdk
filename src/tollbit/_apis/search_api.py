@@ -21,7 +21,7 @@ class AsyncSearchAPI:
     api_key: str
     user_agent: str
     _base_url: str
-    _timeout: int
+    _timeout: float
 
     def __init__(self, api_key: str, user_agent: str, env: Environment):
         self.api_key = api_key
