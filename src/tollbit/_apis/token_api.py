@@ -1,7 +1,6 @@
-import requests
 import httpx
 from pydantic import BaseModel, TypeAdapter
-from typing import Type, TypeVar, Any
+from typing import Type, TypeVar
 from tollbit._environment import Environment
 from tollbit._apis.models import (
     CreateSubdomainAccessTokenRequest,
@@ -33,6 +32,7 @@ class AsyncTokenAPI:
         self.api_key = api_key
         self.user_agent = user_agent
         self._base_url = env.developer_api_base_url
+        self._timeout = env.timeout
 
     async def get_content_token(
         self, req: CreateSubdomainAccessTokenRequest
@@ -76,7 +76,7 @@ class AsyncTokenAPI:
         self, path: str, headers: dict[str, str], body: BaseModel
     ) -> httpx.Response:
         payload = body.model_dump(mode="json", by_alias=True, exclude_none=True)
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=self._timeout) as client:
             response = await client.post(
                 url=f"{self._base_url}{path}", headers=headers, json=payload
             )

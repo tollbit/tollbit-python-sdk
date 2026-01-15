@@ -19,8 +19,12 @@ from tollbit._environment import env_from_vars
 def create_client(
     secret_key: str,
     user_agent: str,
+    request_timeout: float | None = None,
 ) -> UseContentClient:
     env = env_from_vars()
+
+    if request_timeout is not None:
+        env = env.override(timeout=request_timeout)
 
     return UseContentClient(
         content_api=ContentAPI(
@@ -43,8 +47,12 @@ def create_client(
 def create_async_client(
     secret_key: str,
     user_agent: str,
+    request_timeout: float | None = None,
 ) -> AsyncUseContentClient:
     env = env_from_vars()
+
+    if request_timeout is not None:
+        env = env.override(timeout=request_timeout)
 
     return AsyncUseContentClient(
         token_api=AsyncTokenAPI(

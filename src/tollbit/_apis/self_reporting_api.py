@@ -27,6 +27,7 @@ class AsyncSelfReportingAPI:
         self.api_key = api_key
         self.user_agent = user_agent
         self._base_url = env.developer_api_base_url
+        self._timeout = env.timeout
 
     async def post_self_report(
         self, request: SelfReportContentUsageRequest
@@ -62,7 +63,7 @@ class AsyncSelfReportingAPI:
         self, path: str, headers: dict[str, str], body: BaseModel
     ) -> httpx.Response:
         payload = body.model_dump(mode="json", by_alias=True, exclude_none=True)
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=self._timeout) as client:
             response = await client.post(
                 url=f"{self._base_url}{path}", headers=headers, json=payload
             )

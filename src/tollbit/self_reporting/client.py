@@ -15,8 +15,12 @@ from .usage import Usage
 def create_client(
     secret_key: str,
     user_agent: str,
+    request_timeout: float | None = None,
 ) -> SelfReportingClient:
     env = env_from_vars()
+
+    if request_timeout is not None:
+        env = env.override(timeout=request_timeout)
 
     return SelfReportingClient(
         self_reporting_api=SelfReportingAPI(
@@ -30,8 +34,12 @@ def create_client(
 def create_async_client(
     secret_key: str,
     user_agent: str,
+    request_timeout: float | None = None,
 ) -> AsyncSelfReportingClient:
     env = env_from_vars()
+    if request_timeout is not None:
+        env = env.override(timeout=request_timeout)
+
     return AsyncSelfReportingClient(
         self_reporting_api=AsyncSelfReportingAPI(
             api_key=secret_key,
