@@ -11,8 +11,12 @@ logger = get_sdk_logger(__name__)
 def create_client(
     secret_key: str,
     user_agent: str,
+    request_timeout: float | None = None,
 ) -> SearchClient:
     env = env_from_vars()
+
+    if request_timeout is not None:
+        env = env.override(timeout=request_timeout)
 
     return SearchClient(
         search_api=SearchAPI(
@@ -26,8 +30,13 @@ def create_client(
 def create_async_client(
     secret_key: str,
     user_agent: str,
+    request_timeout: float | None = None,
 ) -> AsyncSearchClient:
     env = env_from_vars()
+
+    if request_timeout is not None:
+        env = env.override(timeout=request_timeout)
+
     return AsyncSearchClient(
         search_api=AsyncSearchAPI(
             api_key=secret_key,

@@ -21,8 +21,12 @@ logger = get_sdk_logger(__name__)
 def create_client(
     secret_key: str,
     user_agent: str,
+    request_timeout: float | None = None,
 ) -> CrawlContentClient:
     env = env_from_vars()
+
+    if request_timeout is not None:
+        env = env.override(timeout=request_timeout)
 
     return CrawlContentClient(
         content_api=ContentAPI(
@@ -45,8 +49,13 @@ def create_client(
 def create_async_client(
     secret_key: str,
     user_agent: str,
+    request_timeout: float | None = None,
 ) -> AsyncCrawlContentClient:
     env = env_from_vars()
+
+    if request_timeout is not None:
+        env = env.override(timeout=request_timeout)
+
     return AsyncCrawlContentClient(
         token_api=AsyncTokenAPI(
             api_key=secret_key,
