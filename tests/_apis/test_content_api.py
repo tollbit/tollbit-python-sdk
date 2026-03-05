@@ -31,7 +31,7 @@ async def test_get_rate_success(respx_mock, test_env):
         "error": "",
     }
     route = respx_mock.get(
-        f"{test_env.developer_api_base_url}/dev/v2/rate/example.com/path/to/content"
+        f"{test_env.developer_api_base_url}/dev/v2/rates/example.com/path/to/content"
     ).mock(return_value=httpx.Response(200, json=[fake_rate]))
     client = AsyncContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
     resp = await client.get_rate("example.com/path/to/content")
@@ -58,7 +58,7 @@ async def test_get_rate_problem_json_error(respx_mock, test_env):
         "type": "about:blank",
     }
     respx_mock.get(
-        f"{test_env.developer_api_base_url}/dev/v2/rate/example.com/path/to/content"
+        f"{test_env.developer_api_base_url}/dev/v2/rates/example.com/path/to/content"
     ).mock(
         return_value=httpx.Response(
             500, json=fake_response, headers={"Content-Type": "application/problem+json"}
@@ -77,7 +77,7 @@ async def test_get_rate_problem_json_error(respx_mock, test_env):
 @pytest.mark.anyio
 async def test_get_rate_non_problem_json_error(respx_mock, test_env):
     respx_mock.get(
-        f"{test_env.developer_api_base_url}/dev/v2/rate/example.com/path/to/content"
+        f"{test_env.developer_api_base_url}/dev/v2/rates/example.com/path/to/content"
     ).mock(return_value=httpx.Response(418, text="Teapots on the attack"))
     client = AsyncContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
     with pytest.raises(ApiError) as exc_info:
@@ -89,7 +89,7 @@ async def test_get_rate_non_problem_json_error(respx_mock, test_env):
 @pytest.mark.anyio
 async def test_get_rate_unreachable(mock_httpx_server_down, test_env):
     mock_httpx_server_down(
-        f"{test_env.developer_api_base_url}/dev/v2/rate/example.com/path/to/content"
+        f"{test_env.developer_api_base_url}/dev/v2/rates/example.com/path/to/content"
     )
     client = AsyncContentAPI(api_key="test-secret-key", user_agent="test-agent", env=test_env)
     with pytest.raises(ServerError):
