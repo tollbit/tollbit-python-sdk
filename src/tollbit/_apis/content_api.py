@@ -14,7 +14,7 @@ from tollbit._apis.errors import (
 )
 from tollbit._logging import get_sdk_logger
 
-_GET_RATE_PATH = "/dev/v2/rate/<PATH>"
+_GET_RATE_PATH = "/dev/v2/rates/<PATH>"
 _GET_CATALOG_PATH = "/dev/v2/content/<DOMAIN>/catalog/list"
 
 # Configure logging

@@ -16,6 +16,10 @@ class Availability(TollbitBaseModel):
     ready_to_license: bool = Field(..., alias='readyToLicense')
 
 
+class BatchGetRateRequest(TollbitBaseModel):
+    urls: List[str]
+
+
 class ContentMetadata(TollbitBaseModel):
     title: str | None = None
     description: str | None = None
@@ -107,6 +111,11 @@ class RatePrice(TollbitBaseModel):
     currency: str
 
 
+class RatePriceResponse(TollbitBaseModel):
+    price_micros: int = Field(..., alias='priceMicros')
+    currency: str
+
+
 class SearchResult(TollbitBaseModel):
     title: str
     url: str
@@ -149,6 +158,14 @@ class SubdomainAccessToken(TollbitBaseModel):
     scheme: Scheme
 
 
+class BatchRateLicenseResponse(TollbitBaseModel):
+    cuid: str
+    license_type: str = Field(..., alias='licenseType')
+    license_path: str = Field(..., alias='licensePath')
+    permissions: List[RateLicensePermission]
+    valid_until: str = Field(..., alias='validUntil')
+
+
 class CatalogResponse(TollbitBaseModel):
     page_token: str | None = Field(None, alias='pageToken')
     pages: List[PropertyPage]
@@ -182,3 +199,14 @@ class SelfReportContentUsageRequest(TollbitBaseModel):
 
 class SelfReportContentUsageResponse(TollbitBaseModel):
     receipts: List[SelfReportUsageReceipt]
+
+
+class BatchDeveloperRateResponse(TollbitBaseModel):
+    price: RatePriceResponse
+    license: BatchRateLicenseResponse
+    error: str
+
+
+class BatchRateResponseV2(TollbitBaseModel):
+    url: str
+    rates: List[BatchDeveloperRateResponse]
