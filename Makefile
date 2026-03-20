@@ -147,7 +147,7 @@ publish-test: build ## Publish package to Test PyPI
 
 
 .PHONY: publish-live
-publish-live: ensure-tag ensure-changelog lint type test clean build ## Publish package to Live PyPI
+publish-live: ensure-tag ensure-changelog lint type test lint-docs clean build ## Publish package to Live PyPI
 	@if [ "$(DRYRUN)" = "true" ]; then \
 	  echo "🚧 DRY RUN: Skipping actual publish to PyPI. Set DRYRUN=false to publish."; \
 	  exit 0; \
@@ -159,4 +159,4 @@ publish-live: ensure-tag ensure-changelog lint type test clean build ## Publish 
 # --- defaults ---
 
 .PHONY: all
-all: lint type test ## Run lint + type + tests
+all: lint type test lint-docs ## Run all checks
