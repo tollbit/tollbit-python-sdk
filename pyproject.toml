@@ -1,9 +1,9 @@
 [project]
 name = "tollbit-python-sdk"
 version = "0.5.3"
-description = "Tollbit SDK for interacting tollbit services, including retrieving content and connecting to the API"
+description = "TollBit SDK for interacting TollBit services, including retrieving content and connecting to the API"
 authors = [
-    {name = "Tollbit",email = "team@tollbit.com"}
+    {name = "TollBit",email = "team@tollbit.com"}
 ]
 license = {text = "MIT"}
 readme = "README.md"
