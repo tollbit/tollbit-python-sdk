@@ -1,14 +1,20 @@
 # Changelog
 
+## 0.5.4 - 2026-03-20
+
+### Changed
+
+- Fixed documentation issues
+
 ## 0.5.3 - 2026-03-04
 
-## Changed
+### Changed
 
 - Updated get rates endpoint to new path `/rates` since `/rate` will be deprecated
 
 ## 0.5.2 - 2026-01-15
 
-## Added
+### Added
 
 - Default timeout for network requests; set via environment variable
 - Allow clients to override timeout for network requests

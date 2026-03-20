@@ -77,6 +77,10 @@ type: ## Static type checks with mypy
 format: ## Auto-format code with Black
 	$(BLACK) $(PY_SRC) --exclude '$(GENERATED_MODELS_DIR)'
 
+.PHONY: lint-docs
+lint-docs:
+	npx -y markdownlint-cli2
+
 .PHONY: clean
 clean: ## Remove build artifacts but keep .gitignore files
 	@echo "🧹 Cleaning build artifacts..."
@@ -143,7 +147,7 @@ publish-test: build ## Publish package to Test PyPI
 
 
 .PHONY: publish-live
-publish-live: ensure-tag ensure-changelog lint type test clean build ## Publish package to Live PyPI
+publish-live: ensure-tag ensure-changelog lint type test lint-docs clean build ## Publish package to Live PyPI
 	@if [ "$(DRYRUN)" = "true" ]; then \
 	  echo "🚧 DRY RUN: Skipping actual publish to PyPI. Set DRYRUN=false to publish."; \
 	  exit 0; \
@@ -155,4 +159,4 @@ publish-live: ensure-tag ensure-changelog lint type test clean build ## Publish 
 # --- defaults ---
 
 .PHONY: all
-all: lint type test ## Run lint + type + tests
+all: lint type test lint-docs ## Run all checks
