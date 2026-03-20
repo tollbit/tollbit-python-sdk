@@ -1,0 +1,10 @@
+{
+  "default": false,
+  "MD044": {
+    "names": [
+      "TollBit"
+    ],
+    "code_blocks": false,
+    "html_elements": false
+  }
+}

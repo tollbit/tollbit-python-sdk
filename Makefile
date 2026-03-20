@@ -77,6 +77,10 @@ type: ## Static type checks with mypy
 format: ## Auto-format code with Black
 	$(BLACK) $(PY_SRC) --exclude '$(GENERATED_MODELS_DIR)'
 
+.PHONY: lint-docs
+lint-docs:
+	npx -y markdownlint-cli2
+
 .PHONY: clean
 clean: ## Remove build artifacts but keep .gitignore files
 	@echo "🧹 Cleaning build artifacts..."

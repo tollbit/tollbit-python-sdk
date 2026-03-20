@@ -1,8 +1,8 @@
 <p align="center">
-  <img alt="Tollbit" src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExaThrOTR0MGRwNzVubDhqYmJ0eHF4OXg3dXk2aXF4Nm1vdDY4NHZ1cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LQpFMg2ZY648ndTv0r/giphy.gif" width="500">
+  <img alt="TollBit" src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExaThrOTR0MGRwNzVubDhqYmJ0eHF4OXg3dXk2aXF4Nm1vdDY4NHZ1cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LQpFMg2ZY648ndTv0r/giphy.gif" width="500">
 </p>
 
-<h3 align="center">Tollbit: Front Door Access for AI Agents</h2>
+<h3 align="center">TollBit: Front Door Access for AI Agents</h2>
 
 <p align="center">Web automation, API access, and content access all through a standard entry point.</p>
 
@@ -14,11 +14,11 @@
   <a href="https://twitter.com/tollbitofficial"><img src="https://img.shields.io/twitter/follow/TollbitOffical?style=social" alt="Twitter Follow"></a>
 </p>
 
-# Tollbit
+# TollBit
 
 A managed entry point to any web app, specifically meant for AI agents. Direct, authorized, and reliable agent <-> service interactions for any web service on the internet. Built for web automation, API access, and content access.
 
-## Why Tollbit Exists
+## Why TollBit Exists
 
 It's no secret that AI agents are going to run the web in the near future. However, for that to become a reality, the way agents interact with the internet needs to change. Currently, agent builders' options are limited to typical developer APIs and/or web automation. While great for demos, these patterns seem like the initial "hack" waiting for a more long term solution.
 
@@ -26,15 +26,15 @@ Developer APIs work well, but there is a very short list beyond the overused Goo
 
 The main reason for all this trouble? The web was not built for agents to be first class citzens.
 
-Tollbit aims to build critical infrastructure that opens up new pathways for agents to act on the web, at native speed, and to actually bring real value to their users.
+TollBit aims to build critical infrastructure that opens up new pathways for agents to act on the web, at native speed, and to actually bring real value to their users.
 
 We are building on one ethical principle: **agents shouldn't (need to) pretend to be humans on the internet**.
 
 This approach solves problems for both sides: website owners gain a reliable way to identify legitimate AI agents, manage their access privileges, and monetize their usage, while AI developers get stable, authorized access to first-party APIs, content, or web UI.
 
-## How Tollbit Works
+## How TollBit Works
 
-Tollbit creates a gateway for AI agents through a simple convention:
+TollBit creates a gateway for AI agents through a simple convention:
 
 **Any service with a `tollbit` subdomain (`tollbit.example.com`) explicitly welcomes agent access with standardized authorization, permissions, and monetization.**
 
@@ -74,7 +74,7 @@ flowchart LR
 
 ## For Service Providers
 
-Tollbit lets you monetize AI agent access to your service without building custom infrastructure:
+TollBit lets you monetize AI agent access to your service without building custom infrastructure:
 
 - Implement once, work with any agent
 - Set different pricing tiers and usage limits
@@ -83,16 +83,17 @@ Tollbit lets you monetize AI agent access to your service without building custo
 
 ## For AI Developers
 
-Tollbit gives your agents reliable access to services:
+TollBit gives your agents reliable access to services:
 
 - One consistent pattern for authentication and access
 - No more brittle web automation that breaks with UI changes
 - Clear permissions model designed for non-human users
 - Focus on building intelligence, not maintaining integration code
 
+<!-- markdownlint-disable-next-line MD044 -->
 # tollbit-python-sdk
 
-Tollbit's python SDK for interacting with Tollbit's services. Pull this directly into your code to make requests; no need to write your own clients. The SDK supports both synchronous and asynchronous calls.
+TollBit's python SDK for interacting with TollBit's services. Pull this directly into your code to make requests; no need to write your own clients. The SDK supports both synchronous and asynchronous calls.
 
 The SDK currently supports the following operations:
 
@@ -352,7 +353,7 @@ All create client function can take the optional parameters `request_timeout` (f
 use multiple network calls, and the timeout is set for each individual network request not for the client function call overall.
 
 ## Issues
-We have disabled issues for the time being. Please reach out directly to tollbit
+We have disabled issues for the time being. Please reach out directly to TollBit.
 
 ## Contributions
 We are not currently accepting contributions at this time. Thank you for your interest.
