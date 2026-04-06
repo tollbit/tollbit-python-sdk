@@ -125,7 +125,7 @@ pages = client.list_content_catalog(
     page_size=5,
 )
 
-for page in page:
+for page in pages.pages:
     print(f"URL: {page.page_url} Last Modified: {page.last_mod}")
     data = client.crawl_content(url=page.page_url)
     print(data.content.main)
