@@ -18,6 +18,11 @@ class Availability(TollbitBaseModel):
 
 class BatchGetRateRequest(TollbitBaseModel):
     urls: List[str]
+    custom_license_ids: List[str] | None = Field(
+        None,
+        alias='customLicenseIds',
+        description='Custom license IDs to include in the response; standard licenses are always returned.',
+    )
 
 
 class ContentMetadata(TollbitBaseModel):
@@ -27,6 +32,7 @@ class ContentMetadata(TollbitBaseModel):
     author: str | None = None
     published: str | None = None
     modified: str | None = None
+    language: str | None = None
 
 
 class CreateAOSAccessTokenRequest(TollbitBaseModel):
@@ -88,6 +94,17 @@ class PropertyPage(TollbitBaseModel):
     property_id: str = Field(..., alias='propertyId')
     page_url: str = Field(..., alias='pageUrl')
     last_mod: datetime | None = Field(None, alias='lastMod')
+
+
+class PropertyRate(TollbitBaseModel):
+    path_prefix: str = Field(..., alias='pathPrefix')
+    price_micros: int = Field(..., alias='priceMicros')
+    currency: str
+    user_agent: str | None = Field(
+        None,
+        alias='userAgent',
+        description='Present on bot rates: the registered user agent of the calling org this rate applies to. Absent on directory rates.',
+    )
 
 
 class Publisher(TollbitBaseModel):
@@ -192,6 +209,43 @@ class PagedSearchResultResponse(TollbitBaseModel):
     items: List[SearchResult]
 
 
+class PropertyLicense(TollbitBaseModel):
+    type: str = Field(
+        ...,
+        description='License type, e.g. ON_DEMAND_LICENSE, ON_DEMAND_FULL_USE_LICENSE, CUSTOM_LICENSE.',
+    )
+    rates_enabled: bool = Field(
+        ...,
+        alias='ratesEnabled',
+        description='True when at least one license of this type has rates enabled.',
+    )
+    rates: List[PropertyRate] = Field(
+        ...,
+        description="All directory rates for this license type, plus bot rates matching the calling org's registered user agents (those carry a userAgent), each ordered by path prefix. Always empty for CUSTOM_LICENSE (negotiated pricing is not public). Page and time rates are not included; use the rates endpoints for exact per-URL pricing.",
+    )
+
+
+class PropertyListItem(TollbitBaseModel):
+    domain: str = Field(..., description='The property\'s domain, e.g. "example.com".')
+    name: str = Field(..., description='The publisher-facing property name.')
+    added_at: datetime = Field(
+        ..., alias='addedAt', description='When the property was added to TollBit.'
+    )
+    rates_enabled_at: datetime | None = Field(
+        None,
+        alias='ratesEnabledAt',
+        description="When rates were most recently enabled on any of the property's licenses. Absent if rates were never enabled.",
+    )
+    ready_to_license: bool = Field(
+        ...,
+        alias='readyToLicense',
+        description='True when the property can be transacted on now: a verified property with a rates-enabled standard license.',
+    )
+    licenses: List[PropertyLicense] = Field(
+        ..., description='The license types available on this property.'
+    )
+
+
 class SelfReportContentUsageRequest(TollbitBaseModel):
     idempotency_id: str = Field(..., alias='idempotencyId')
     usage: List[SelfReportUsage]
@@ -210,3 +264,8 @@ class BatchDeveloperRateResponse(TollbitBaseModel):
 class BatchRateResponseV2(TollbitBaseModel):
     url: str
     rates: List[BatchDeveloperRateResponse]
+
+
+class PagedPropertyListResponse(TollbitBaseModel):
+    next_token: str = Field(..., alias='nextToken')
+    items: List[PropertyListItem]

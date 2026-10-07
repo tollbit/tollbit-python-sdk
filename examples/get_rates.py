@@ -37,3 +37,21 @@ for rate in rate_info:
     print(f"  License Type: {rate.license.license_type}")
     print(f"  License Path: {rate.license.license_path}")
     print(f"  Permissions: {rate.license.permissions}")
+
+custom_rate_info = client.get_rate(
+    url="https://pioneervalleygazette.com/daydream",
+    custom_license_ids=["YOUR_CUSTOM_LICENSE_ID"],
+)
+print(f"{len(custom_rate_info)} Content Rates including custom licenses")
+
+batch = client.get_rates(
+    urls=[
+        "https://pioneervalleygazette.com/daydream",
+        "https://pioneervalleygazette.com/dragon",
+    ],
+    custom_license_ids=["YOUR_CUSTOM_LICENSE_ID"],
+)
+for result in batch:
+    print(f"Rates for {result.url}:")
+    for rate in result.rates:
+        print(f"  {rate.license.license_type} {rate.license.cuid}: {rate.price.price_micros}")

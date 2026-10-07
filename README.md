@@ -131,6 +131,17 @@ for page in pages.pages:
     print(data.content.main)
 ```
 
+To only list pages modified within a date range, pass `modified_from` and/or `modified_to` (a `date` or `datetime`):
+
+```python
+from datetime import date
+
+pages = client.list_content_catalog(
+    url="https://pioneervalleygazette.com",
+    modified_from=date(2026, 9, 1),
+)
+```
+
 For more examples please see [examples/crawl_content.py](examples/crawl_content.py)
 
 ### Asynchronous
@@ -151,6 +162,30 @@ pages = await client.list_content_catalog(
 ```
 
 For more examples please see [examples/crawl_content_async.py](examples/crawl_content_async.py)
+
+## Listing Properties
+
+Use the `crawl_client` to list the properties available on TollBit, along with their license types and rates.
+
+```python
+from tollbit import crawl_content
+
+client = crawl_content.create_client(
+    secret_key="YOUR API KEY",
+    user_agent="YOUR USER AGENT"
+)
+
+properties = client.list_properties(ready_to_license=True)
+
+for prop in properties.items:
+    print(f"{prop.domain}: {[license.type for license in prop.licenses]}")
+
+next_page = client.list_properties(ready_to_license=True, page_token=properties.next_token)
+```
+
+`list_properties` also accepts `page_size`, plus `added_from` and `added_to` to filter by when a property was added or had rates enabled. The async client exposes the same method.
+
+For more examples please see [examples/list_properties.py](examples/list_properties.py)
 
 
 ## Checking Rates
@@ -198,6 +233,34 @@ rate_info = await crawl.get_rate(url="https://pioneervalleygazette.com/daydream"
 ```
 
 For more examples please see [examples/get_rates_async.py](examples/get_rates_async.py)
+
+### Custom licenses
+
+Rates for custom licenses are only returned when you ask for them by license ID. Standard license rates are always returned.
+
+```python
+rate_info = use.get_rate(
+    url="https://pioneervalleygazette.com/daydream",
+    custom_license_ids=["YOUR CUSTOM LICENSE ID"],
+)
+```
+
+### Batch
+
+Use `get_rates` to check rates for several URLs in one request. It also accepts `custom_license_ids`, and each ID only applies to URLs on the property it belongs to.
+
+```python
+batch = use.get_rates(
+    urls=[
+        "https://pioneervalleygazette.com/daydream",
+        "https://pioneervalleygazette.com/dragon",
+    ],
+    custom_license_ids=["YOUR CUSTOM LICENSE ID"],
+)
+
+for result in batch:
+    print(result.url, [rate.license.cuid for rate in result.rates])
+```
 
 ## Accessing sanctioned content
 
@@ -326,6 +389,12 @@ search_client = search.create_client(
 )
 
 results = client.search(q="DIY home projects for millenials")
+```
+
+To restrict results, pass `allowed_only=True` (properties your org is allowed to access) and/or `ready_to_license=True` (properties ready to license):
+
+```python
+results = client.search(q="DIY home projects for millenials", ready_to_license=True)
 ```
 
 For more examples please see [examples/search.py](examples/search.py)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import functools
 import httpx
 import anyio
 from pydantic import TypeAdapter
@@ -35,16 +36,23 @@ class AsyncSearchAPI:
         size: int | None = None,
         next_token: str | None = None,
         properties: str | None = None,
+        *,
+        allowed_only: bool | None = None,
+        ready_to_license: bool | None = None,
     ) -> PagedSearchResultResponse:
         headers = self._headers()
         url = f"{self._base_url}{_SEARCH_PATH}"
-        params: dict[str, str | int] = {"q": q}
+        params: dict[str, str | int | bool] = {"q": q}
         if size is not None:
             params["size"] = size
         if next_token is not None:
             params["next-token"] = next_token
         if properties is not None:
             params["properties"] = properties
+        if allowed_only is not None:
+            params["allowedOnly"] = allowed_only
+        if ready_to_license is not None:
+            params["readyToLicense"] = ready_to_license
 
         logger.debug(
             "Requesting search results...",
@@ -90,12 +98,19 @@ class SearchAPI:
         size: int | None = None,
         next_token: str | None = None,
         properties: str | None = None,
+        *,
+        allowed_only: bool | None = None,
+        ready_to_license: bool | None = None,
     ) -> PagedSearchResultResponse:
         return anyio.run(
-            self._async_api.search,
-            q,
-            size,
-            next_token,
-            properties,
+            functools.partial(
+                self._async_api.search,
+                q,
+                size,
+                next_token,
+                properties,
+                allowed_only=allowed_only,
+                ready_to_license=ready_to_license,
+            ),
             backend=self._env.anyio_backend,
         )

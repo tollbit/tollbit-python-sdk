@@ -34,7 +34,7 @@ def test_get_rate_calls_variants(url):
     )
 
     result = client.get_rate(url)
-    mock_content_api.get_rate.assert_called_with("example.com/bar")
+    mock_content_api.get_rate.assert_called_with("example.com/bar", custom_license_ids=None)
     assert result == fake_rate
 
 

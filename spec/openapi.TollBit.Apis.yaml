@@ -10,6 +10,8 @@ tags:
   - name: Get Catalog of Pages for Property
   - name: Search
   - name: Search Content
+  - name: Properties
+  - name: List Properties
   - name: Reporting
   - name: Report Content Usage
 paths:
@@ -86,6 +88,22 @@ paths:
           schema:
             type: string
           explode: false
+        - name: from
+          in: query
+          required: false
+          description: Only return pages last modified on or after this date. RFC3339 date or datetime; inclusive, UTC day granularity.
+          schema:
+            type: string
+            format: date-time
+          explode: false
+        - name: to
+          in: query
+          required: false
+          description: Only return pages last modified on or before this date. RFC3339 date or datetime; inclusive, UTC day granularity.
+          schema:
+            type: string
+            format: date-time
+          explode: false
       responses:
         '200':
           description: The request has succeeded.
@@ -126,6 +144,90 @@ paths:
       tags:
         - Tollbit Content
         - Get Catalog of Pages for Property
+      security:
+        - ApiKeyAuth: []
+  /dev/v2/properties:
+    get:
+      operationId: PropertiesService_listProperties
+      parameters:
+        - name: pageSize
+          in: query
+          required: false
+          description: 'The number of properties to return per request (default: 100, max: 1000).'
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: pageToken
+          in: query
+          required: false
+          description: Token for pagination. If provided, continues from the encoded position. If not provided, returns the first page.
+          schema:
+            type: string
+          explode: false
+        - name: readyToLicense
+          in: query
+          required: false
+          description: When true, only return properties ready to license (a rates-enabled standard license on a verified property).
+          schema:
+            type: boolean
+          explode: false
+        - name: from
+          in: query
+          required: false
+          description: Only return properties added or rates-enabled on or after this date. RFC3339 date or datetime; inclusive.
+          schema:
+            type: string
+            format: date-time
+          explode: false
+        - name: to
+          in: query
+          required: false
+          description: Only return properties added or rates-enabled on or before this date. RFC3339 date or datetime; inclusive.
+          schema:
+            type: string
+            format: date-time
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedPropertyListResponse'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJSON'
+      tags:
+        - Properties
+        - List Properties
       security:
         - ApiKeyAuth: []
   /dev/v2/rates/batch:
@@ -191,6 +293,14 @@ paths:
           required: true
           schema:
             type: string
+        - name: customLicenseId
+          in: query
+          required: false
+          description: Custom license IDs to include in the response; standard licenses are always returned.
+          schema:
+            type: array
+            items:
+              type: string
       responses:
         '200':
           description: The request has succeeded.
@@ -263,9 +373,26 @@ paths:
         - name: properties
           in: query
           required: false
-          description: Comma-separated list of domains (max 20) to boost in search results. When provided, generates a custom goggle string.
+          description: Comma-separated list of domains (max 20) to boost in search results.
           schema:
             type: string
+          explode: false
+        - name: allowedOnly
+          in: query
+          required: false
+          description: |-
+            When true, restrict search to properties the calling org is allowed to access.
+            Intersects with `properties` when both are provided.
+            Uses the org content-catalog allowlist; will be expanded to broader allowlist semantics later.
+          schema:
+            type: boolean
+          explode: false
+        - name: readyToLicense
+          in: query
+          required: false
+          description: When true, restrict search to properties ready to license. Intersects with `properties` when both are provided.
+          schema:
+            type: boolean
           explode: false
       responses:
         '200':
@@ -548,6 +675,11 @@ components:
           type: array
           items:
             type: string
+        customLicenseIds:
+          type: array
+          items:
+            type: string
+          description: Custom license IDs to include in the response; standard licenses are always returned.
     BatchRateLicenseResponse:
       type: object
       required:
@@ -606,6 +738,8 @@ components:
         published:
           type: string
         modified:
+          type: string
+        language:
           type: string
     ContentRate:
       type: object
@@ -726,6 +860,20 @@ components:
           type: string
         footer:
           type: string
+    PagedPropertyListResponse:
+      type: object
+      allOf:
+        - type: object
+          required:
+            - nextToken
+            - items
+          properties:
+            nextToken:
+              type: string
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/PropertyListItem'
     PagedSearchResultResponse:
       type: object
       allOf:
@@ -759,6 +907,55 @@ components:
         instance:
           type: string
       additionalProperties: {}
+    PropertyLicense:
+      type: object
+      required:
+        - type
+        - ratesEnabled
+        - rates
+      properties:
+        type:
+          type: string
+          description: License type, e.g. ON_DEMAND_LICENSE, ON_DEMAND_FULL_USE_LICENSE, CUSTOM_LICENSE.
+        ratesEnabled:
+          type: boolean
+          description: True when at least one license of this type has rates enabled.
+        rates:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropertyRate'
+          description: All directory rates for this license type, plus bot rates matching the calling org's registered user agents (those carry a userAgent), each ordered by path prefix. Always empty for CUSTOM_LICENSE (negotiated pricing is not public). Page and time rates are not included; use the rates endpoints for exact per-URL pricing.
+    PropertyListItem:
+      type: object
+      required:
+        - domain
+        - name
+        - addedAt
+        - readyToLicense
+        - licenses
+      properties:
+        domain:
+          type: string
+          description: The property's domain, e.g. "example.com".
+        name:
+          type: string
+          description: The publisher-facing property name.
+        addedAt:
+          type: string
+          format: date-time
+          description: When the property was added to TollBit.
+        ratesEnabledAt:
+          type: string
+          format: date-time
+          description: When rates were most recently enabled on any of the property's licenses. Absent if rates were never enabled.
+        readyToLicense:
+          type: boolean
+          description: 'True when the property can be transacted on now: a verified property with a rates-enabled standard license.'
+        licenses:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropertyLicense'
+          description: The license types available on this property.
     PropertyPage:
       type: object
       required:
@@ -772,6 +969,23 @@ components:
         lastMod:
           type: string
           format: date-time
+    PropertyRate:
+      type: object
+      required:
+        - pathPrefix
+        - priceMicros
+        - currency
+      properties:
+        pathPrefix:
+          type: string
+        priceMicros:
+          type: integer
+          format: int64
+        currency:
+          type: string
+        userAgent:
+          type: string
+          description: 'Present on bot rates: the registered user agent of the calling org this rate applies to. Absent on directory rates.'
     Publisher:
       type: object
       required:

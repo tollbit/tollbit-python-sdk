@@ -1,4 +1,5 @@
 from __future__ import annotations
+from datetime import date, datetime
 from tollbit.tokens import TollbitToken
 from tollbit._apis.content_api import ContentAPI, AsyncContentAPI
 from tollbit._apis.token_api import TokenAPI, AsyncTokenAPI
@@ -9,6 +10,8 @@ from tollbit._apis.models import (
     CatalogResponse,
     GetContentResponse,
     DeveloperRateResponse,
+    BatchRateResponseV2,
+    PagedPropertyListResponse,
 )
 from tollbit.content_formats import Format
 from tollbit._environment import env_from_vars
@@ -116,6 +119,9 @@ class AsyncCrawlContentClient:
         url: str,
         page_size: int = 100,
         page_token: str | None = None,
+        *,
+        modified_from: date | datetime | None = None,
+        modified_to: date | datetime | None = None,
     ) -> CatalogResponse | None:
         parsed_url = parse_url_with_forgiveness(url)
         logger.debug(
@@ -126,6 +132,8 @@ class AsyncCrawlContentClient:
             content_domain=f"{parsed_url.netloc}",
             page_size=page_size,
             page_token=page_token,
+            modified_from=modified_from,
+            modified_to=modified_to,
         )
 
         if len(results.pages) == 0:
@@ -133,9 +141,35 @@ class AsyncCrawlContentClient:
 
         return results
 
-    async def get_rate(self, url: str) -> list[DeveloperRateResponse]:
+    async def list_properties(
+        self,
+        page_size: int = 100,
+        page_token: str | None = None,
+        *,
+        ready_to_license: bool | None = None,
+        added_from: date | datetime | None = None,
+        added_to: date | datetime | None = None,
+    ) -> PagedPropertyListResponse:
+        return await self.content_api.list_properties(
+            page_size,
+            page_token,
+            ready_to_license=ready_to_license,
+            added_from=added_from,
+            added_to=added_to,
+        )
+
+    async def get_rate(
+        self, url: str, *, custom_license_ids: list[str] | None = None
+    ) -> list[DeveloperRateResponse]:
         parsed_url = urlparse(url)
-        return await self.content_api.get_rate(f"{parsed_url.netloc}{parsed_url.path}")
+        return await self.content_api.get_rate(
+            f"{parsed_url.netloc}{parsed_url.path}", custom_license_ids=custom_license_ids
+        )
+
+    async def get_rates(
+        self, urls: list[str], *, custom_license_ids: list[str] | None = None
+    ) -> list[BatchRateResponseV2]:
+        return await self.content_api.get_rates(urls, custom_license_ids=custom_license_ids)
 
 
 class CrawlContentClient:
@@ -158,6 +192,9 @@ class CrawlContentClient:
         url: str,
         page_size: int = 100,
         page_token: str | None = None,
+        *,
+        modified_from: date | datetime | None = None,
+        modified_to: date | datetime | None = None,
     ) -> CatalogResponse | None:
         parsed_url = parse_url_with_forgiveness(url)
         logger.debug(
@@ -168,6 +205,8 @@ class CrawlContentClient:
             content_domain=f"{parsed_url.netloc}",
             page_size=page_size,
             page_token=page_token,
+            modified_from=modified_from,
+            modified_to=modified_to,
         )
 
         if len(results.pages) == 0:
@@ -197,6 +236,32 @@ class CrawlContentClient:
 
         return response
 
-    def get_rate(self, url: str) -> list[DeveloperRateResponse]:
+    def list_properties(
+        self,
+        page_size: int = 100,
+        page_token: str | None = None,
+        *,
+        ready_to_license: bool | None = None,
+        added_from: date | datetime | None = None,
+        added_to: date | datetime | None = None,
+    ) -> PagedPropertyListResponse:
+        return self.content_api.list_properties(
+            page_size,
+            page_token,
+            ready_to_license=ready_to_license,
+            added_from=added_from,
+            added_to=added_to,
+        )
+
+    def get_rate(
+        self, url: str, *, custom_license_ids: list[str] | None = None
+    ) -> list[DeveloperRateResponse]:
         parsed_url = urlparse(url)
-        return self.content_api.get_rate(f"{parsed_url.netloc}{parsed_url.path}")
+        return self.content_api.get_rate(
+            f"{parsed_url.netloc}{parsed_url.path}", custom_license_ids=custom_license_ids
+        )
+
+    def get_rates(
+        self, urls: list[str], *, custom_license_ids: list[str] | None = None
+    ) -> list[BatchRateResponseV2]:
+        return self.content_api.get_rates(urls, custom_license_ids=custom_license_ids)
