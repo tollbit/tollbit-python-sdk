@@ -8,6 +8,7 @@ from tollbit._apis.models import (
     CreateSubdomainAccessTokenRequest,
     GetContentResponse,
     DeveloperRateResponse,
+    BatchRateResponseV2,
 )
 from tollbit.content_formats import Format
 from tollbit.currencies import Currency
@@ -117,9 +118,18 @@ class AsyncUseContentClient:
 
         return response
 
-    async def get_rate(self, url: str) -> list[DeveloperRateResponse]:
+    async def get_rate(
+        self, url: str, *, custom_license_ids: list[str] | None = None
+    ) -> list[DeveloperRateResponse]:
         parsed_url = urlparse(url)
-        return await self.content_api.get_rate(f"{parsed_url.netloc}{parsed_url.path}")
+        return await self.content_api.get_rate(
+            f"{parsed_url.netloc}{parsed_url.path}", custom_license_ids=custom_license_ids
+        )
+
+    async def get_rates(
+        self, urls: list[str], *, custom_license_ids: list[str] | None = None
+    ) -> list[BatchRateResponseV2]:
+        return await self.content_api.get_rates(urls, custom_license_ids=custom_license_ids)
 
 
 class UseContentClient:
@@ -137,9 +147,18 @@ class UseContentClient:
         self.token_api = token_api
         self.content_retrieval_api = content_retrieval_api
 
-    def get_rate(self, url: str) -> list[DeveloperRateResponse]:
+    def get_rate(
+        self, url: str, *, custom_license_ids: list[str] | None = None
+    ) -> list[DeveloperRateResponse]:
         parsed_url = urlparse(url)
-        return self.content_api.get_rate(f"{parsed_url.netloc}{parsed_url.path}")
+        return self.content_api.get_rate(
+            f"{parsed_url.netloc}{parsed_url.path}", custom_license_ids=custom_license_ids
+        )
+
+    def get_rates(
+        self, urls: list[str], *, custom_license_ids: list[str] | None = None
+    ) -> list[BatchRateResponseV2]:
+        return self.content_api.get_rates(urls, custom_license_ids=custom_license_ids)
 
     def get_sanctioned_content(
         self,

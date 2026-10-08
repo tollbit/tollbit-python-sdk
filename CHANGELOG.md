@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6.0 - 2026-10-07
+
+### Added
+
+- `custom_license_ids` on `get_rate` to include rates for custom licenses
+- `get_rates` on the use and crawl clients for batch rate lookups
+- `list_properties` on the crawl client
+- `modified_from` / `modified_to` filters on `list_content_catalog`
+- `allowed_only` / `ready_to_license` filters on `search`
+- `language` on content metadata
+
 ## 0.5.4 - 2026-03-20
 
 ### Changed

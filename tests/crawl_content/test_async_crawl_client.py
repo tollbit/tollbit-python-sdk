@@ -22,7 +22,11 @@ async def test_list_content_catalog_async():
 
     result = await client.list_content_catalog("example.com/bar")
     mock_content_api.get_content_catalog.assert_awaited_with(
-        content_domain="example.com", page_size=100, page_token=None
+        content_domain="example.com",
+        page_size=100,
+        page_token=None,
+        modified_from=None,
+        modified_to=None,
     )
     assert result == fake_catalog
 

@@ -20,4 +20,11 @@ from ._generated.openapi_tollbit_apis import (
     RateLicenseResponse,
     RatePrice,
     ContentRate,
+    BatchGetRateRequest,
+    BatchRateResponseV2,
+    BatchDeveloperRateResponse,
+    PagedPropertyListResponse,
+    PropertyListItem,
+    PropertyLicense,
+    PropertyRate,
 )

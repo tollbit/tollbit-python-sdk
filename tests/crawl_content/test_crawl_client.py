@@ -32,7 +32,11 @@ def test_get_content_catalog(url):
 
     result = client.list_content_catalog(url)
     mock_content_api.get_content_catalog.assert_called_with(
-        content_domain="example.com", page_size=100, page_token=None
+        content_domain="example.com",
+        page_size=100,
+        page_token=None,
+        modified_from=None,
+        modified_to=None,
     )
     assert result == fake_catalog
 
@@ -56,7 +60,7 @@ def test_get_rate_calls_variants(url):
     )
 
     result = client.get_rate(url)
-    mock_content_api.get_rate.assert_called_with("example.com/bar")
+    mock_content_api.get_rate.assert_called_with("example.com/bar", custom_license_ids=None)
     assert result == fake_rate
 
 

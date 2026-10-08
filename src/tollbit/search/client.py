@@ -61,6 +61,9 @@ class AsyncSearchClient:
         size: int | None = None,
         next_token: str | None = None,
         properties: list[str] | None = None,
+        *,
+        allowed_only: bool | None = None,
+        ready_to_license: bool | None = None,
     ) -> PagedSearchResultResponse:
         """
         Search for content across the TollBit platform.
@@ -71,6 +74,10 @@ class AsyncSearchClient:
             next_token: Token for pagination. If provided, continues from the encoded page.
             properties: List of domains (max 20) to boost in search results. When provided,
                        generates a custom goggle string.
+            allowed_only: When True, only return results from properties your org is allowed to
+                       access. Intersects with properties when both are provided.
+            ready_to_license: When True, only return results from properties that are ready to
+                       license. Intersects with properties when both are provided.
 
         Returns:
             PagedSearchResultResponse containing search results and next token for pagination.
@@ -91,6 +98,8 @@ class AsyncSearchClient:
             size=size,
             next_token=next_token,
             properties=properties_str,
+            allowed_only=allowed_only,
+            ready_to_license=ready_to_license,
         )
 
 
@@ -109,6 +118,9 @@ class SearchClient:
         size: int | None = None,
         next_token: str | None = None,
         properties: list[str] | None = None,
+        *,
+        allowed_only: bool | None = None,
+        ready_to_license: bool | None = None,
     ) -> PagedSearchResultResponse:
         """
         Search for content across the TollBit platform.
@@ -119,6 +131,10 @@ class SearchClient:
             next_token: Token for pagination. If provided, continues from the encoded page.
             properties: List of domains (max 20) to boost in search results. When provided,
                        generates a custom goggle string.
+            allowed_only: When True, only return results from properties your org is allowed to
+                       access. Intersects with properties when both are provided.
+            ready_to_license: When True, only return results from properties that are ready to
+                       license. Intersects with properties when both are provided.
 
         Returns:
             PagedSearchResultResponse containing search results and next token for pagination.
@@ -139,4 +155,6 @@ class SearchClient:
             size=size,
             next_token=next_token,
             properties=properties_str,
+            allowed_only=allowed_only,
+            ready_to_license=ready_to_license,
         )

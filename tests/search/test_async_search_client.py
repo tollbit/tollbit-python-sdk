@@ -20,6 +20,8 @@ async def test_async_search_basic():
         size=None,
         next_token=None,
         properties=None,
+        allowed_only=None,
+        ready_to_license=None,
     )
     assert result == fake_response
     assert len(result.items) == 2
@@ -41,6 +43,8 @@ async def test_async_search_with_size():
         size=10,
         next_token=None,
         properties=None,
+        allowed_only=None,
+        ready_to_license=None,
     )
     assert result == fake_response
 
@@ -60,6 +64,8 @@ async def test_async_search_with_next_token():
         size=None,
         next_token="token-123",
         properties=None,
+        allowed_only=None,
+        ready_to_license=None,
     )
     assert result == fake_response
 
@@ -82,6 +88,8 @@ async def test_async_search_with_properties():
         size=None,
         next_token=None,
         properties="example.com,tutorial.com",
+        allowed_only=None,
+        ready_to_license=None,
     )
     assert result == fake_response
 
@@ -106,6 +114,8 @@ async def test_async_search_with_all_parameters():
         size=5,
         next_token="token-456",
         properties="example.com",
+        allowed_only=None,
+        ready_to_license=None,
     )
     assert result == fake_response
 
@@ -140,6 +150,8 @@ async def test_async_search_properties_exactly_20():
         size=None,
         next_token=None,
         properties=",".join(properties),
+        allowed_only=None,
+        ready_to_license=None,
     )
     assert result == fake_response
 
@@ -159,5 +171,7 @@ async def test_async_search_properties_empty_list():
         size=None,
         next_token=None,
         properties="",
+        allowed_only=None,
+        ready_to_license=None,
     )
     assert result == fake_response
