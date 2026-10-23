@@ -1,94 +1,86 @@
 <p align="center">
-  <img alt="TollBit" src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExaThrOTR0MGRwNzVubDhqYmJ0eHF4OXg3dXk2aXF4Nm1vdDY4NHZ1cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LQpFMg2ZY648ndTv0r/giphy.gif" width="500">
+  <a href="https://tollbit.com">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="assets/tollbit-logo-dark.svg">
+      <img alt="TollBit" src="assets/tollbit-logo-light.svg" width="320">
+    </picture>
+  </a>
 </p>
 
-<h3 align="center">TollBit: Front Door Access for AI Agents</h2>
+<h3 align="center">Your complete web stack for the agentic internet</h3>
 
-<p align="center">Web automation, API access, and content access all through a standard entry point.</p>
+<p align="center">The official Python SDK for licensed AI access to content on the TollBit network.</p>
 
 <br>
 
 <p align="center">
-  <a href="https://github.com/tollbit/tollbit-python-sdk/stargazers"><img src="https://img.shields.io/github/stars/tollbit/tollbit-python-sdk?style=social" alt="GitHub stars"></a>
-  <a href="https://docs.tollbit.com"><img src="https://img.shields.io/badge/Documentation-📗-green" alt="Documentation"></a>
-  <a href="https://twitter.com/tollbitofficial"><img src="https://img.shields.io/twitter/follow/TollbitOffical?style=social" alt="Twitter Follow"></a>
+  <a href="https://tollbit.com"><img src="https://img.shields.io/badge/Website-tollbit.com-191514" alt="Website"></a>
+  <a href="https://docs.tollbit.com"><img src="https://img.shields.io/badge/Docs-docs.tollbit.com-191514" alt="Documentation"></a>
+  <a href="https://pypi.org/project/tollbit-python-sdk/"><img src="https://img.shields.io/pypi/v/tollbit-python-sdk?color=191514" alt="PyPI version"></a>
 </p>
 
 # TollBit
 
-A managed entry point to any web app, specifically meant for AI agents. Direct, authorized, and reliable agent <-> service interactions for any web service on the internet. Built for web automation, API access, and content access.
-
-## Why TollBit Exists
-
-It's no secret that AI agents are going to run the web in the near future. However, for that to become a reality, the way agents interact with the internet needs to change. Currently, agent builders' options are limited to typical developer APIs and/or web automation. While great for demos, these patterns seem like the initial "hack" waiting for a more long term solution.
-
-Developer APIs work well, but there is a very short list beyond the overused Google Drive, Slack, etc. Web automation is extremely slow, unreliable and insecure. Not only that, but most websites don't want bots on them, leading to doing all the grunt work of solving captchas and avoiding getting blocked.
-
-The main reason for all this trouble? The web was not built for agents to be first class citzens.
-
-TollBit aims to build critical infrastructure that opens up new pathways for agents to act on the web, at native speed, and to actually bring real value to their users.
-
-We are building on one ethical principle: **agents shouldn't (need to) pretend to be humans on the internet**.
-
-This approach solves problems for both sides: website owners gain a reliable way to identify legitimate AI agents, manage their access privileges, and monetize their usage, while AI developers get stable, authorized access to first-party APIs, content, or web UI.
+TollBit is the web stack for the agentic internet. Publishers use TollBit to see which AI agents visit their sites, control what those agents can access, and set their terms for paid AI access. AI developers use TollBit to discover those terms and license content through one API, instead of negotiating one-off contracts or scraping.
 
 ## How TollBit Works
 
-TollBit creates a gateway for AI agents through a simple convention:
-
-**Any service with a `tollbit` subdomain (`tollbit.example.com`) explicitly welcomes agent access with standardized authorization, permissions, and monetization.**
-
-We call this subdomain the "front door" - a dedicated entry point built specifically for AI agents, separate from human traffic.
+Publishers on the TollBit network give AI visitors their own way in: an Agent Site on a `tollbit` subdomain (for example `tollbit.example.com`), separate from human traffic. Each publisher chooses which licenses to offer and at what rates. AI systems discover those license terms programmatically before they access content, and every licensed request is logged.
 
 ```mermaid
 flowchart LR
     %% Define the AI agent client
-    A[AI Agent with<br>Tollbit Client]
+    A[AI Agent with<br>TollBit SDK]
 
-    %% Define the Tollbit front doors
-    B1[tollbit.service-a.com]
-    B2[tollbit.service-b.com]
-    B3[tollbit.service-c.com]
+    %% Define the TollBit Agent Sites
+    B1[tollbit.publisher-a.com]
+    B2[tollbit.publisher-b.com]
+    B3[tollbit.publisher-c.com]
 
-    %% Define the actual services
-    C1[service-a.com]
-    C2[service-b.com]
-    C3[service-c.com]
+    %% Define the publisher sites
+    C1[publisher-a.com]
+    C2[publisher-b.com]
+    C3[publisher-c.com]
 
     %% Define the human user (simple)
     H[Human User]
 
-    %% Connect AI agent to Tollbit front doors
-    A -->|"HTTP"| B1
-    A -->|"HTTP"| B2
-    A -->|"HTTP"| B3
+    %% Connect AI agent to TollBit Agent Sites
+    A -->|"Licensed access"| B1
+    A -->|"Licensed access"| B2
+    A -->|"Licensed access"| B3
 
-    %% Connect human to just service-a
+    %% Connect human to just publisher-a
     H -->|"Browser"| C1
 
-    %% Connect Tollbit front doors to actual services - no labels
+    %% Connect TollBit Agent Sites to publisher sites - no labels
     B1 --- C1
     B2 --- C2
     B3 --- C3
 ```
 
-## For Service Providers
+## Licenses
 
-TollBit lets you monetize AI agent access to your service without building custom infrastructure:
+TollBit licenses are built for retrieval-augmented generation (RAG), grounding, citation and display, not model training:
 
-- Implement once, work with any agent
-- Set different pricing tiers and usage limits
-- Separate human and bot traffic transparently
-- Prevent abuse through standardized authentication
+- **Standard Summarization License**: single-use access for summaries, citations or grounding
+- **Standard Full Display License**: single-use display of the full article within an AI application
+- **Custom licenses**: publisher-specific agreements, enforced alongside the standard licenses
+
+Neither standard license permits training or generative reuse.
+
+## For Publishers
+
+TollBit gives publishers a free platform to understand AI traffic, separate it from human traffic, and enforce rules and rates for content access. Visit the [TollBit website](https://tollbit.com) to get started.
 
 ## For AI Developers
 
-TollBit gives your agents reliable access to services:
+This SDK gives your agents licensed access to the TollBit network:
 
-- One consistent pattern for authentication and access
-- No more brittle web automation that breaks with UI changes
-- Clear permissions model designed for non-human users
-- Focus on building intelligence, not maintaining integration code
+- Search and list the properties available on TollBit
+- Check license rates before you access content
+- Retrieve licensed content with your organization's API key
+- Report your usage of licensed content
 
 <!-- markdownlint-disable-next-line MD044 -->
 # tollbit-python-sdk
