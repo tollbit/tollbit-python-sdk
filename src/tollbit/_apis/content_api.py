@@ -1,7 +1,6 @@
 import functools
 from datetime import date, datetime
 import httpx
-import anyio
 from pydantic import TypeAdapter
 from tollbit._environment import Environment
 from tollbit._apis.models import (
@@ -18,6 +17,7 @@ from tollbit._apis.errors import (
     api_error_details,
 )
 from tollbit._logging import get_sdk_logger
+from tollbit._http import HTTPTransport
 
 _GET_RATE_PATH = "/dev/v2/rates/<PATH>"
 _BATCH_GET_RATES_PATH = "/dev/v2/rates/batch"
@@ -29,11 +29,13 @@ logger = get_sdk_logger(__name__)
 
 
 class AsyncContentAPI:
-    def __init__(self, api_key: str, user_agent: str, env: Environment):
+    def __init__(
+        self, api_key: str, user_agent: str, env: Environment, *, http: HTTPTransport | None = None
+    ):
         self.api_key = api_key
         self.user_agent = user_agent
         self._base_url = env.developer_api_base_url
-        self._timeout = env.timeout
+        self._http = http if http is not None else HTTPTransport(env)
 
     async def get_rate(
         self, content: str, *, custom_license_ids: list[str] | None = None
@@ -48,7 +50,7 @@ class AsyncContentAPI:
             extra={"content": content, "url": url, "headers": headers, "params": params},
         )
         try:
-            async with httpx.AsyncClient(timeout=self._timeout) as client:
+            async with self._http.session() as client:
                 response = await client.get(url, headers=headers, params=params)
         except httpx.RequestError as e:
             logger.error(f"Couldn't fetch rate: {e!r}", extra=httpx_error_details(e))
@@ -78,7 +80,7 @@ class AsyncContentAPI:
             extra={"url": url, "headers": headers, "request": payload},
         )
         try:
-            async with httpx.AsyncClient(timeout=self._timeout) as client:
+            async with self._http.session() as client:
                 response = await client.post(url, headers=headers, json=payload)
         except httpx.RequestError as e:
             logger.error(f"Couldn't fetch rates: {e!r}", extra=httpx_error_details(e))
@@ -120,7 +122,7 @@ class AsyncContentAPI:
             extra={"url": url, "headers": headers, "params": params},
         )
         try:
-            async with httpx.AsyncClient(timeout=self._timeout) as client:
+            async with self._http.session() as client:
                 response = await client.get(url, headers=headers, params=params)
         except httpx.RequestError as e:
             logger.error(f"Couldn't fetch content catalog: {e!r}", extra=httpx_error_details(e))
@@ -165,7 +167,7 @@ class AsyncContentAPI:
             extra={"url": url, "headers": headers, "params": params},
         )
         try:
-            async with httpx.AsyncClient(timeout=self._timeout) as client:
+            async with self._http.session() as client:
                 response = await client.get(url, headers=headers, params=params)
         except httpx.RequestError as e:
             logger.error(f"Couldn't fetch properties: {e!r}", extra=httpx_error_details(e))
@@ -195,28 +197,30 @@ class AsyncContentAPI:
 
 
 class ContentAPI:
-    def __init__(self, api_key: str, user_agent: str, env: Environment):
-        self._env = env
-        self._async_api = AsyncContentAPI(api_key=api_key, user_agent=user_agent, env=env)
+    def __init__(
+        self, api_key: str, user_agent: str, env: Environment, *, http: HTTPTransport | None = None
+    ):
+        self._http = http if http is not None else HTTPTransport(env)
+        self._async_api = AsyncContentAPI(
+            api_key=api_key, user_agent=user_agent, env=env, http=self._http
+        )
 
     def get_rate(
         self, content: str, *, custom_license_ids: list[str] | None = None
     ) -> list[DeveloperRateResponse]:
-        return anyio.run(
+        return self._http.run(
             functools.partial(
                 self._async_api.get_rate, content, custom_license_ids=custom_license_ids
             ),
-            backend=self._env.anyio_backend,
         )
 
     def get_rates(
         self, urls: list[str], *, custom_license_ids: list[str] | None = None
     ) -> list[BatchRateResponseV2]:
-        return anyio.run(
+        return self._http.run(
             functools.partial(
                 self._async_api.get_rates, urls, custom_license_ids=custom_license_ids
             ),
-            backend=self._env.anyio_backend,
         )
 
     def get_content_catalog(
@@ -228,7 +232,7 @@ class ContentAPI:
         modified_from: date | datetime | None = None,
         modified_to: date | datetime | None = None,
     ) -> CatalogResponse:
-        return anyio.run(
+        return self._http.run(
             functools.partial(
                 self._async_api.get_content_catalog,
                 content_domain,
@@ -237,7 +241,6 @@ class ContentAPI:
                 modified_from=modified_from,
                 modified_to=modified_to,
             ),
-            backend=self._env.anyio_backend,
         )
 
     def list_properties(
@@ -249,7 +252,7 @@ class ContentAPI:
         added_from: date | datetime | None = None,
         added_to: date | datetime | None = None,
     ) -> PagedPropertyListResponse:
-        return anyio.run(
+        return self._http.run(
             functools.partial(
                 self._async_api.list_properties,
                 page_size,
@@ -258,5 +261,4 @@ class ContentAPI:
                 added_from=added_from,
                 added_to=added_to,
             ),
-            backend=self._env.anyio_backend,
         )

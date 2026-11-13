@@ -7,6 +7,7 @@ from tollbit._apis.models import (
     SelfReportLicensePermission,
 )
 from tollbit._environment import env_from_vars
+from tollbit._http import AsyncClientContext, HTTPTransport, SyncClientContext
 from dataclasses import dataclass
 import uuid
 from .usage import Usage
@@ -22,11 +23,14 @@ def create_client(
     if request_timeout is not None:
         env = env.override(timeout=request_timeout)
 
+    http = HTTPTransport(env)
     return SelfReportingClient(
+        _http=http,
         self_reporting_api=SelfReportingAPI(
             api_key=secret_key,
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
     )
 
@@ -40,22 +44,28 @@ def create_async_client(
     if request_timeout is not None:
         env = env.override(timeout=request_timeout)
 
+    http = HTTPTransport(env)
     return AsyncSelfReportingClient(
+        _http=http,
         self_reporting_api=AsyncSelfReportingAPI(
             api_key=secret_key,
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
     )
 
 
-class AsyncSelfReportingClient:
+class AsyncSelfReportingClient(AsyncClientContext):
     self_reporting_api: AsyncSelfReportingAPI
 
     def __init__(
         self,
         self_reporting_api: AsyncSelfReportingAPI,
+        *,
+        _http: HTTPTransport | None = None,
     ):
+        super().__init__(_http)
         self.self_reporting_api = self_reporting_api
 
     def create_transaction_block(self, usages: list[Usage]) -> TransactionBlock:
@@ -86,13 +96,16 @@ class AsyncSelfReportingClient:
         return await self.self_reporting_api.post_self_report(request)
 
 
-class SelfReportingClient:
+class SelfReportingClient(SyncClientContext):
     self_reporting_api: SelfReportingAPI
 
     def __init__(
         self,
         self_reporting_api: SelfReportingAPI,
+        *,
+        _http: HTTPTransport | None = None,
     ):
+        super().__init__(_http)
         self.self_reporting_api = self_reporting_api
 
     def create_transaction_block(self, usages: list[Usage]) -> TransactionBlock:

@@ -1,6 +1,5 @@
 import requests
 import httpx
-import anyio
 from pydantic import TypeAdapter
 from tollbit._environment import Environment
 from tollbit.content_formats import Format
@@ -15,6 +14,7 @@ from tollbit._apis.errors import (
 )
 from tollbit.tokens import TollbitToken
 from tollbit._logging import get_sdk_logger
+from tollbit._http import HTTPTransport
 
 _GET_CONTENT_PATH = "/dev/v2/content/<PATH>"
 
@@ -26,10 +26,10 @@ class AsyncContentRetrievalAPI:
     user_agent: str
     _base_url: str
 
-    def __init__(self, user_agent: str, env: Environment):
+    def __init__(self, user_agent: str, env: Environment, *, http: HTTPTransport | None = None):
         self.user_agent = user_agent
         self._base_url = env.developer_api_base_url
-        self._timeout = env.timeout
+        self._http = http if http is not None else HTTPTransport(env)
 
     async def get_content(
         self, token: TollbitToken, content_url: str, format: Format
@@ -47,7 +47,7 @@ class AsyncContentRetrievalAPI:
                 extra={"url": url, "headers": headers},
             )
 
-            async with httpx.AsyncClient(timeout=self._timeout) as client:
+            async with self._http.session() as client:
                 response = await client.get(
                     url,
                     headers=headers,
@@ -71,13 +71,11 @@ class AsyncContentRetrievalAPI:
 
 
 class ContentRetrievalAPI:
-    def __init__(self, user_agent: str, env: Environment):
-        self._async_api = AsyncContentRetrievalAPI(user_agent, env)
-        self._env = env
+    def __init__(self, user_agent: str, env: Environment, *, http: HTTPTransport | None = None):
+        self._http = http if http is not None else HTTPTransport(env)
+        self._async_api = AsyncContentRetrievalAPI(user_agent, env, http=self._http)
 
     def get_content(
         self, token: TollbitToken, content_url: str, format: Format
     ) -> GetContentResponse:
-        return anyio.run(
-            self._async_api.get_content, token, content_url, format, backend=self._env.anyio_backend
-        )
+        return self._http.run(self._async_api.get_content, token, content_url, format)
