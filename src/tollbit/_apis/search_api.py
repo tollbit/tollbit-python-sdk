@@ -1,7 +1,6 @@
 from __future__ import annotations
 import functools
 import httpx
-import anyio
 from pydantic import TypeAdapter
 from tollbit._environment import Environment
 from tollbit._apis.models._generated.openapi_tollbit_apis import PagedSearchResultResponse
@@ -12,6 +11,7 @@ from tollbit._apis.errors import (
     api_error_details,
 )
 from tollbit._logging import get_sdk_logger
+from tollbit._http import HTTPTransport
 
 _SEARCH_PATH = "/dev/v2/search"
 
@@ -22,13 +22,14 @@ class AsyncSearchAPI:
     api_key: str
     user_agent: str
     _base_url: str
-    _timeout: float
 
-    def __init__(self, api_key: str, user_agent: str, env: Environment):
+    def __init__(
+        self, api_key: str, user_agent: str, env: Environment, *, http: HTTPTransport | None = None
+    ):
         self.api_key = api_key
         self.user_agent = user_agent
         self._base_url = env.developer_api_base_url
-        self._timeout = env.timeout
+        self._http = http if http is not None else HTTPTransport(env)
 
     async def search(
         self,
@@ -59,7 +60,7 @@ class AsyncSearchAPI:
             extra={"url": url, "headers": headers, "params": params},
         )
         try:
-            async with httpx.AsyncClient(timeout=self._timeout) as client:
+            async with self._http.session() as client:
                 response = await client.get(url, headers=headers, params=params)
         except httpx.RequestError as e:
             logger.error(f"Couldn't fetch search results: {e!r}", extra=httpx_error_details(e))
@@ -88,9 +89,13 @@ class AsyncSearchAPI:
 
 
 class SearchAPI:
-    def __init__(self, api_key: str, user_agent: str, env: Environment):
-        self._env = env
-        self._async_api = AsyncSearchAPI(api_key=api_key, user_agent=user_agent, env=env)
+    def __init__(
+        self, api_key: str, user_agent: str, env: Environment, *, http: HTTPTransport | None = None
+    ):
+        self._http = http if http is not None else HTTPTransport(env)
+        self._async_api = AsyncSearchAPI(
+            api_key=api_key, user_agent=user_agent, env=env, http=self._http
+        )
 
     def search(
         self,
@@ -102,7 +107,7 @@ class SearchAPI:
         allowed_only: bool | None = None,
         ready_to_license: bool | None = None,
     ) -> PagedSearchResultResponse:
-        return anyio.run(
+        return self._http.run(
             functools.partial(
                 self._async_api.search,
                 q,
@@ -112,5 +117,4 @@ class SearchAPI:
                 allowed_only=allowed_only,
                 ready_to_license=ready_to_license,
             ),
-            backend=self._env.anyio_backend,
         )

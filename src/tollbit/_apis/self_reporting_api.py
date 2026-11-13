@@ -1,5 +1,4 @@
 import httpx
-import anyio
 from typing import Any
 from tollbit._environment import Environment
 from tollbit._apis.models import (
@@ -14,6 +13,7 @@ from tollbit._apis.errors import (
 )
 from pydantic import BaseModel, TypeAdapter
 from tollbit._logging import get_sdk_logger
+from tollbit._http import HTTPTransport
 
 _SELF_REPORTING_API_BASE_PATH = "/dev/v2/transactions/selfReport"
 
@@ -23,11 +23,13 @@ T = TypeAdapter
 
 
 class AsyncSelfReportingAPI:
-    def __init__(self, api_key: str, user_agent: str, env: Environment):
+    def __init__(
+        self, api_key: str, user_agent: str, env: Environment, *, http: HTTPTransport | None = None
+    ):
         self.api_key = api_key
         self.user_agent = user_agent
         self._base_url = env.developer_api_base_url
-        self._timeout = env.timeout
+        self._http = http if http is not None else HTTPTransport(env)
 
     async def post_self_report(
         self, request: SelfReportContentUsageRequest
@@ -63,7 +65,7 @@ class AsyncSelfReportingAPI:
         self, path: str, headers: dict[str, str], body: BaseModel
     ) -> httpx.Response:
         payload = body.model_dump(mode="json", by_alias=True, exclude_none=True)
-        async with httpx.AsyncClient(timeout=self._timeout) as client:
+        async with self._http.session() as client:
             response = await client.post(
                 url=f"{self._base_url}{path}", headers=headers, json=payload
             )
@@ -78,15 +80,18 @@ class AsyncSelfReportingAPI:
 
 
 class SelfReportingAPI:
-    def __init__(self, api_key: str, user_agent: str, env: Environment):
-        self._env = env
+    def __init__(
+        self, api_key: str, user_agent: str, env: Environment, *, http: HTTPTransport | None = None
+    ):
+        self._http = http if http is not None else HTTPTransport(env)
         self._async_api = AsyncSelfReportingAPI(
             api_key=api_key,
             user_agent=user_agent,
             env=env,
+            http=self._http,
         )
 
     def post_self_report(
         self, request: SelfReportContentUsageRequest
     ) -> SelfReportContentUsageResponse:
-        return anyio.run(self._async_api.post_self_report, request, backend=self._env.anyio_backend)
+        return self._http.run(self._async_api.post_self_report, request)

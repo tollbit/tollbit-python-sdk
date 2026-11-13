@@ -3,6 +3,7 @@ from __future__ import annotations
 from tollbit._apis.search_api import SearchAPI, AsyncSearchAPI
 from tollbit._apis.models._generated.openapi_tollbit_apis import PagedSearchResultResponse
 from tollbit._environment import env_from_vars
+from tollbit._http import AsyncClientContext, HTTPTransport, SyncClientContext
 from tollbit._logging import get_sdk_logger
 
 logger = get_sdk_logger(__name__)
@@ -18,11 +19,14 @@ def create_client(
     if request_timeout is not None:
         env = env.override(timeout=request_timeout)
 
+    http = HTTPTransport(env)
     return SearchClient(
+        _http=http,
         search_api=SearchAPI(
             api_key=secret_key,
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
     )
 
@@ -37,22 +41,28 @@ def create_async_client(
     if request_timeout is not None:
         env = env.override(timeout=request_timeout)
 
+    http = HTTPTransport(env)
     return AsyncSearchClient(
+        _http=http,
         search_api=AsyncSearchAPI(
             api_key=secret_key,
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
     )
 
 
-class AsyncSearchClient:
+class AsyncSearchClient(AsyncClientContext):
     search_api: AsyncSearchAPI
 
     def __init__(
         self,
         search_api: AsyncSearchAPI,
+        *,
+        _http: HTTPTransport | None = None,
     ):
+        super().__init__(_http)
         self.search_api = search_api
 
     async def search(
@@ -103,13 +113,16 @@ class AsyncSearchClient:
         )
 
 
-class SearchClient:
+class SearchClient(SyncClientContext):
     search_api: SearchAPI
 
     def __init__(
         self,
         search_api: SearchAPI,
+        *,
+        _http: HTTPTransport | None = None,
     ):
+        super().__init__(_http)
         self.search_api = search_api
 
     def search(

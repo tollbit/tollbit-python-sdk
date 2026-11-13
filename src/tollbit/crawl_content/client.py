@@ -15,8 +15,9 @@ from tollbit._apis.models import (
 )
 from tollbit.content_formats import Format
 from tollbit._environment import env_from_vars
+from tollbit._http import AsyncClientContext, HTTPTransport, SyncClientContext
 from tollbit._logging import get_sdk_logger
-from tollbit.forgiving_urls import parse_url_with_forgiveness
+from tollbit.forgiving_urls import content_urls, parse_url_with_forgiveness
 
 logger = get_sdk_logger(__name__)
 
@@ -31,20 +32,25 @@ def create_client(
     if request_timeout is not None:
         env = env.override(timeout=request_timeout)
 
+    http = HTTPTransport(env)
     return CrawlContentClient(
+        _http=http,
         content_api=ContentAPI(
             api_key=secret_key,
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
         token_api=TokenAPI(
             api_key=secret_key,
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
         content_retrieval_api=ContentRetrievalAPI(
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
     )
 
@@ -59,25 +65,30 @@ def create_async_client(
     if request_timeout is not None:
         env = env.override(timeout=request_timeout)
 
+    http = HTTPTransport(env)
     return AsyncCrawlContentClient(
+        _http=http,
         token_api=AsyncTokenAPI(
             api_key=secret_key,
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
         content_retrieval_api=AsyncContentRetrievalAPI(
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
         content_api=AsyncContentAPI(
             api_key=secret_key,
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
     )
 
 
-class AsyncCrawlContentClient:
+class AsyncCrawlContentClient(AsyncClientContext):
     content_retrieval_api: AsyncContentRetrievalAPI
     token_api: AsyncTokenAPI
     content_api: AsyncContentAPI
@@ -87,7 +98,10 @@ class AsyncCrawlContentClient:
         token_api: AsyncTokenAPI,
         content_retrieval_api: AsyncContentRetrievalAPI,
         content_api: AsyncContentAPI,
+        *,
+        _http: HTTPTransport | None = None,
     ):
+        super().__init__(_http)
         self.token_api = token_api
         self.content_retrieval_api = content_retrieval_api
         self.content_api = content_api
@@ -97,19 +111,16 @@ class AsyncCrawlContentClient:
         url: str,
         format: Format = Format.markdown,
     ) -> GetContentResponse:
-        parsed_url = urlparse(url)
-        if parsed_url.scheme not in ("http", "https"):
-            parsed_url = parsed_url._replace(scheme="https")
-
+        token_url, retrieval_url = content_urls(url)
         req = CreateCrawlAccessTokenRequest(
-            url=f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}",  # type: ignore
+            url=token_url,  # type: ignore
             userAgent=self.token_api.user_agent,
         )
         token_resp = await self.token_api.get_crawl_token(req)
         token: TollbitToken = TollbitToken(token_resp.token)
 
         response = await self.content_retrieval_api.get_content(
-            content_url=f"{parsed_url.netloc}{parsed_url.path}", token=token, format=format
+            content_url=retrieval_url, token=token, format=format
         )
 
         return response
@@ -172,7 +183,7 @@ class AsyncCrawlContentClient:
         return await self.content_api.get_rates(urls, custom_license_ids=custom_license_ids)
 
 
-class CrawlContentClient:
+class CrawlContentClient(SyncClientContext):
     content_api: ContentAPI
     token_api: TokenAPI
     content_retrieval_api: ContentRetrievalAPI
@@ -182,7 +193,10 @@ class CrawlContentClient:
         content_api: ContentAPI,
         token_api: TokenAPI,
         content_retrieval_api: ContentRetrievalAPI,
+        *,
+        _http: HTTPTransport | None = None,
     ):
+        super().__init__(_http)
         self.content_api = content_api
         self.token_api = token_api
         self.content_retrieval_api = content_retrieval_api
@@ -219,19 +233,16 @@ class CrawlContentClient:
         url: str,
         format: Format = Format.markdown,
     ) -> GetContentResponse:
-        parsed_url = urlparse(url)
-        if parsed_url.scheme not in ("http", "https"):
-            parsed_url = parsed_url._replace(scheme="https")
-
+        token_url, retrieval_url = content_urls(url)
         req = CreateCrawlAccessTokenRequest(
-            url=f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}",  # type: ignore
+            url=token_url,  # type: ignore
             userAgent=self.token_api.user_agent,
         )
         token_resp = self.token_api.get_crawl_token(req)
         token: TollbitToken = TollbitToken(token_resp.token)
 
         response = self.content_retrieval_api.get_content(
-            content_url=f"{parsed_url.netloc}{parsed_url.path}", token=token, format=format
+            content_url=retrieval_url, token=token, format=format
         )
 
         return response
