@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.7.0 - 2026-11-16
+
+### Added
+
+- Sync and async client context managers to reuse HTTP connections across requests
+
+### Changed
+
+- Share a connection pool across token creation and content retrieval within a client context
+- Close pooled connections when the client context exits without persisting response cookies
+- Updated README branding and connection reuse examples
+
+### Fixed
+
+- Preserve query strings and path parameters in content token and retrieval URLs, while removing fragments
+- Install development dependencies and run pytest with each Python version's interpreter in the test matrix
+
 ## 0.6.0 - 2026-10-07
 
 ### Added
