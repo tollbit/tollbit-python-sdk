@@ -32,9 +32,14 @@ async def test_list_content_catalog_async():
 
 
 @pytest.mark.anyio
-async def test_crawl_content_async():
+@pytest.mark.parametrize(
+    "suffix",
+    ["", "?id=123&page=2", "?tag=a&tag=b&empty=&sig=a%2Bb%2Fc#section", ";edition=us?id=123"],
+)
+async def test_crawl_content_async(suffix):
     fake_token_str = "tok_123"
-    fake_content_url = "example.com/bar"
+    fake_content_url = "example.com/bar" + suffix
+    expected_content_url = fake_content_url.split("#", 1)[0]
     fake_response = stub_crawl_response()
 
     mock_content_retrieval_api = AsyncMock(spec=AsyncContentRetrievalAPI)
@@ -55,11 +60,11 @@ async def test_crawl_content_async():
 
     mock_token_api.get_crawl_token.assert_awaited_once_with(
         CreateCrawlAccessTokenRequest(
-            url="https://example.com/bar",
+            url="https://" + expected_content_url,
             userAgent="test-agent",
         )
     )
     mock_content_retrieval_api.get_content.assert_awaited_once_with(
-        content_url=fake_content_url, token=TollbitToken(fake_token_str), format=Format.markdown
+        content_url=expected_content_url, token=TollbitToken(fake_token_str), format=Format.markdown
     )
     assert result == fake_response

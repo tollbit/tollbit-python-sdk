@@ -155,6 +155,27 @@ pages = await client.list_content_catalog(
 
 For more examples please see [examples/crawl_content_async.py](examples/crawl_content_async.py)
 
+### Reusing connections
+
+Wrap a batch of requests in a client context to reuse HTTP connections. Each
+client shares one pool across its API calls, including token creation and
+content retrieval. The SDK closes the pool when the context exits.
+
+```python
+with crawl_content.create_client(secret_key, user_agent) as client:
+    for url in urls:
+        result = client.crawl_content(url)
+```
+
+```python
+async with crawl_content.create_async_client(secret_key, user_agent) as client:
+    for url in urls:
+        result = await client.crawl_content(url)
+```
+
+The same context managers work with the use content, search, and self-reporting
+client factories. Keep an async client and its requests on the same event loop.
+
 ## Listing Properties
 
 Use the `crawl_client` to list the properties available on TollBit, along with their license types and rates.

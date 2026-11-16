@@ -4,6 +4,7 @@ from tollbit._apis.content_api import ContentAPI, AsyncContentAPI
 from tollbit._apis.token_api import TokenAPI, AsyncTokenAPI
 from tollbit._apis.content_retrieval_api import ContentRetrievalAPI, AsyncContentRetrievalAPI
 from urllib.parse import urlparse
+from tollbit.forgiving_urls import content_urls
 from tollbit._apis.models import (
     CreateSubdomainAccessTokenRequest,
     GetContentResponse,
@@ -15,6 +16,7 @@ from tollbit.currencies import Currency
 from tollbit.licenses.types import LicenseType
 from pydantic import AnyUrl
 from tollbit._environment import env_from_vars
+from tollbit._http import AsyncClientContext, HTTPTransport, SyncClientContext
 
 
 def create_client(
@@ -27,20 +29,25 @@ def create_client(
     if request_timeout is not None:
         env = env.override(timeout=request_timeout)
 
+    http = HTTPTransport(env)
     return UseContentClient(
+        _http=http,
         content_api=ContentAPI(
             api_key=secret_key,
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
         token_api=TokenAPI(
             api_key=secret_key,
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
         content_retrieval_api=ContentRetrievalAPI(
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
     )
 
@@ -55,25 +62,30 @@ def create_async_client(
     if request_timeout is not None:
         env = env.override(timeout=request_timeout)
 
+    http = HTTPTransport(env)
     return AsyncUseContentClient(
+        _http=http,
         token_api=AsyncTokenAPI(
             api_key=secret_key,
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
         content_api=AsyncContentAPI(
             api_key=secret_key,
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
         content_retrieval_api=AsyncContentRetrievalAPI(
             user_agent=user_agent,
             env=env,
+            http=http,
         ),
     )
 
 
-class AsyncUseContentClient:
+class AsyncUseContentClient(AsyncClientContext):
     content_retrieval_api: AsyncContentRetrievalAPI
     token_api: AsyncTokenAPI
     content_api: AsyncContentAPI
@@ -83,7 +95,10 @@ class AsyncUseContentClient:
         token_api: AsyncTokenAPI,
         content_api: AsyncContentAPI,
         content_retrieval_api: AsyncContentRetrievalAPI,
+        *,
+        _http: HTTPTransport | None = None,
     ):
+        super().__init__(_http)
         self.token_api = token_api
         self.content_api = content_api
         self.content_retrieval_api = content_retrieval_api
@@ -97,12 +112,9 @@ class AsyncUseContentClient:
         license_id: str | None = None,
         format: Format = Format.markdown,
     ) -> GetContentResponse:
-        parsed_url = urlparse(url)
-        if parsed_url.scheme not in ("http", "https"):
-            parsed_url = parsed_url._replace(scheme="https")
-
+        token_url, retrieval_url = content_urls(url)
         req = CreateSubdomainAccessTokenRequest(
-            url=f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}",  # type: ignore
+            url=token_url,  # type: ignore
             userAgent=self.token_api.user_agent,
             maxPriceMicros=max_price_micros,
             currency=currency.value,
@@ -113,7 +125,7 @@ class AsyncUseContentClient:
         token: TollbitToken = TollbitToken(token_resp.token)
 
         response = await self.content_retrieval_api.get_content(
-            content_url=f"{parsed_url.netloc}{parsed_url.path}", token=token, format=format
+            content_url=retrieval_url, token=token, format=format
         )
 
         return response
@@ -132,7 +144,7 @@ class AsyncUseContentClient:
         return await self.content_api.get_rates(urls, custom_license_ids=custom_license_ids)
 
 
-class UseContentClient:
+class UseContentClient(SyncClientContext):
     content_api: ContentAPI
     token_api: TokenAPI
     content_retrieval_api: ContentRetrievalAPI
@@ -142,7 +154,10 @@ class UseContentClient:
         content_api: ContentAPI,
         token_api: TokenAPI,
         content_retrieval_api: ContentRetrievalAPI,
+        *,
+        _http: HTTPTransport | None = None,
     ):
+        super().__init__(_http)
         self.content_api = content_api
         self.token_api = token_api
         self.content_retrieval_api = content_retrieval_api
@@ -169,12 +184,9 @@ class UseContentClient:
         license_id: str | None = None,
         format: Format = Format.markdown,
     ) -> GetContentResponse:
-        parsed_url = urlparse(url)
-        if parsed_url.scheme not in ("http", "https"):
-            parsed_url = parsed_url._replace(scheme="https")
-
+        token_url, retrieval_url = content_urls(url)
         req = CreateSubdomainAccessTokenRequest(
-            url=f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}",  # type: ignore
+            url=token_url,  # type: ignore
             userAgent=self.token_api.user_agent,
             maxPriceMicros=max_price_micros,
             currency=currency.value,
@@ -185,7 +197,7 @@ class UseContentClient:
         token: TollbitToken = TollbitToken(token_resp.token)
 
         response = self.content_retrieval_api.get_content(
-            content_url=f"{parsed_url.netloc}{parsed_url.path}", token=token, format=format
+            content_url=retrieval_url, token=token, format=format
         )
 
         return response

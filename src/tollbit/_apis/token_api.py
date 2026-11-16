@@ -16,7 +16,7 @@ from tollbit._apis.errors import (
 )
 from tollbit._environment import Environment
 from tollbit._logging import get_sdk_logger
-import anyio
+from tollbit._http import HTTPTransport
 
 CREATE_CONTENT_TOKEN_PATH = "/dev/v2/tokens/content"
 CREATE_CRAWL_TOKEN_PATH = "/dev/v2/tokens/crawl"
@@ -28,11 +28,13 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class AsyncTokenAPI:
-    def __init__(self, api_key: str, user_agent: str, env: Environment):
+    def __init__(
+        self, api_key: str, user_agent: str, env: Environment, *, http: HTTPTransport | None = None
+    ):
         self.api_key = api_key
         self.user_agent = user_agent
         self._base_url = env.developer_api_base_url
-        self._timeout = env.timeout
+        self._http = http if http is not None else HTTPTransport(env)
 
     async def get_content_token(
         self, req: CreateSubdomainAccessTokenRequest
@@ -76,7 +78,7 @@ class AsyncTokenAPI:
         self, path: str, headers: dict[str, str], body: BaseModel
     ) -> httpx.Response:
         payload = body.model_dump(mode="json", by_alias=True, exclude_none=True)
-        async with httpx.AsyncClient(timeout=self._timeout) as client:
+        async with self._http.session() as client:
             response = await client.post(
                 url=f"{self._base_url}{path}", headers=headers, json=payload
             )
@@ -91,26 +93,25 @@ class AsyncTokenAPI:
 
 
 class TokenAPI:
-    def __init__(self, api_key: str, user_agent: str, env: Environment):
-        self._env = env
+    def __init__(
+        self, api_key: str, user_agent: str, env: Environment, *, http: HTTPTransport | None = None
+    ):
+        self._http = http if http is not None else HTTPTransport(env)
         self.user_agent = user_agent
         self._async_token_api = AsyncTokenAPI(
             api_key=api_key,
             user_agent=user_agent,
             env=env,
+            http=self._http,
         )
 
     def get_content_token(
         self, req: CreateSubdomainAccessTokenRequest
     ) -> CreateSubdomainAccessTokenResponse:
-        return anyio.run(
-            self._async_token_api.get_content_token, req, backend=self._env.anyio_backend
-        )
+        return self._http.run(self._async_token_api.get_content_token, req)
 
     def get_crawl_token(self, req: CreateCrawlAccessTokenRequest) -> CreateCrawlAccessTokenResponse:
-        return anyio.run(
-            self._async_token_api.get_crawl_token, req, backend=self._env.anyio_backend
-        )
+        return self._http.run(self._async_token_api.get_crawl_token, req)
 
 
 def _handle_response(response: httpx.Response, success_model: Type[T]) -> T:

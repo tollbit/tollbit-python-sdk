@@ -20,7 +20,14 @@ from test_helpers.mock_response import (
 # --- Tests ---
 # ======= Get Content Tests =======
 @pytest.mark.anyio
-async def test_get_content_success(respx_mock, test_env):
+@pytest.mark.parametrize(
+    "content_url",
+    [
+        "example.com/path/to/content",
+        "example.com/path/to/content?id=123&tag=a&tag=b&empty=&sig=a%2Bb%2Fc",
+    ],
+)
+async def test_get_content_success(respx_mock, test_env, content_url):
     fake_content = {
         "metadata": {
             "title": "Sample Title",
@@ -49,13 +56,11 @@ async def test_get_content_success(respx_mock, test_env):
         },
     }
     get_content = respx_mock.get(
-        f"{test_env.developer_api_base_url}/dev/v2/content/example.com/path/to/content"
+        f"{test_env.developer_api_base_url}/dev/v2/content/{content_url}"
     ).mock(return_value=httpx.Response(200, json=fake_content))
 
     client = AsyncContentRetrievalAPI(user_agent="test-agent", env=test_env)
-    resp = await client.get_content(
-        TollbitToken("dummy-token"), "example.com/path/to/content", content_formats.HTML
-    )
+    resp = await client.get_content(TollbitToken("dummy-token"), content_url, content_formats.HTML)
 
     assert isinstance(resp, GetContentResponse)
     req = assert_request_made(get_content)
